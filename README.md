@@ -4,7 +4,7 @@ This workshop is developed by Stephen Rhodes (@stephenrho) and Julia Haaf (@Juli
 
 ## Description
 
-This two day workshop covers the essentials of cognitive modeling in `R`. Attendees will be introduced to several commonly used models in cognitive psychology and how to fit them using both maximum likelihood and hierarchical Bayesian methods. While it is specifically aimed at graduate students in cognitive psychology, this workshop will be of interest to anyone looking to build their `R` modeling skills.
+Cognitive process models provide a powerful tool to disentangle different cognitive processes contributing to the same observable responses. These models are successfully applied in many fields of psychology (e.g., memory, decision making, and social cognition). This two day workshop covers the essentials of cognitive modeling using the programming language `R`. Attendees will be introduced to several commonly used models in cognitive psychology and how to fit them using both maximum likelihood and hierarchical Bayesian methods. While the workshop is specifically aimed at graduate students in cognitive psychology, this workshop will be of interest to anyone looking to build their `R` modeling skills.
 
 ## Prerequisites
 
