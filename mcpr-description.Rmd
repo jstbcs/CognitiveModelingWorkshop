@@ -1,0 +1,81 @@
+---
+title: "Modeling Cognitive Processes in R"
+author: "Stephen Rhodes and Julia Haaf"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## General Description
+
+Cognitive process models provide a powerful tool to disentangle different cognitive processes contributing to the same observable responses. These models are successfully applied in many fields of psychology (e.g., memory, decision making, and social cognition). This two day workshop covers the essentials of cognitive modeling using the programming language `R`. Attendees will be introduced to several commonly used models in cognitive psychology and how to fit them using both maximum likelihood and hierarchical Bayesian methods. While the workshop is specifically aimed at graduate students in cognitive psychology, this workshop will be of interest to anyone looking to build their `R` modeling skills.
+
+## Prerequisites
+
+These are not absolutely required but would be useful:
+
+- Passing familiarity with the [`R` programming language](https://www.r-project.org/). You can find a free online introduction [here](https://www.datacamp.com/courses/free-introduction-to-r).
+- Familiarity with statistical concepts such as likelihood.
+
+## Workshop Outline
+
+The workshop will take place over two days in early August. Here's an outline of what we aim to cover on each day:
+
+#### Day 1
+
+*Morning*
+
+- Introduction to `R`:
+    - basic commands
+    - reading and restructuring data
+    - installing packages
+    - defining simple functions
+    - graphing data
+    - basic data simulation
+
+- Maximum Likelihood Estimation:
+    - what is the likelihood function
+    - how to define likelihood functions for models in `R`
+    - searching for maximum likelihood estimates of models parameters
+    - how to compare models fit via maximum likelihood
+    - fitting to individual participants vs the group as a whole
+    - potential pitfalls of maximum likelihood (e.g. avoiding local maxima)
+
+*Afternoon*
+
+- Fitting models to aggregate data:
+    - A Multinomial Processing Tree (MPT) model for the process dissociation paradigm
+    - A Signal Detection Theory (SDT) model for a recognition paradigm with confidence ratings
+
+**Multinomial Processing Tree models** are useful for data/ responses that fall into discrete categories (e.g. chose to buy product A, B, or C; voted for candidate W, X, Y, or Z; recognized a stimulus or not). They allow the researcher to model these observable responses as arising from different latent processes that form a tree-like structure [(see Erdfelder et al., 2009 for more background)](https://www.researchgate.net/profile/Morten_Moshagen/publication/220032645_Multinomial_processing_tree_models_A_review_of_the_literature/links/553e744b0cf210c0bdaaa5b9/Multinomial-processing-tree-models-A-review-of-the-literature.pdf)
+
+**Signal Detection Theory** offers a range of models to analyze data resulting from tasks requiring a choice between alternatives (e.g. is this stimulus old or new?). These models allow researchers to separate the participants' sensitivity (ability to do the task or discriminate between alternatives) from response bias (tendency to choose one of the options over the other).
+
+#### Day 2
+
+*Morning*
+
+- Fitting models to individual participant data:
+    - MPT example
+    - SDT example
+    - conceptual issues in fitting models to individual participants
+
+*Afternoon*
+
+- Introduction to Bayesian Estimation of Cognitive Models:
+    - The benefits of fitting hierarchical models (how to get group *and* individual estimates)
+    - Using JAGS and the `rjags` package to fit MPT and SDT models
+
+There will be time at the end of each day for attendees to ask questions regarding the modeling of their own data.
+
+#### Potential Extra Topics
+
+- Reaction time models (e.g. drift diffusion)
+
+- Models for circular data (e.g. perception or memory tasks requiring reconstruction of an orientation)
+
+- "Does everyone" analyses (does every participant show an effect in the same direction?)
+

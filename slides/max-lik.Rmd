@@ -1,0 +1,262 @@
+---
+title: "Maximum Likelihood in R"
+author: "Stephen Rhodes and Julia Haaf"
+output: 
+  ioslides_presentation:
+    widescreen: true
+subtitle: Estimating parameters from data
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Overview
+
+- Probability vs Likelihood
+- Examples with Binomial and Normal functions
+- Searching for Maximum Likelihood with R
+- Comparing models fit via maximum likelihood
+
+# Probability vs Likelihood
+
+## Probability
+
+- Imagine that you give someone a memory test containing 20 items
+- They can either get the item correct or incorrect
+- You want to figure out what is the probability that the person will get 12 items correct *assuming that they have a 70% chance of producing a correct answer*.
+- You need the Binomial probability function:
+
+$$
+p(k; n, p) = {n \choose k} p^k(1-p)^{n-k}
+$$
+
+## Binomial Probability {.columns-2}
+
+```{r, fig.height=5, fig.width=5}
+
+plot(0:20, dbinom(0:20, size = 20, prob = .7), type='h', xlab="Number Correct", ylab="Probability")
+
+prob_12 = dbinom(12, size = 20, prob = .7)
+
+lines(c(0,12,12), c(prob_12, prob_12, 0), lty=2, col='red')
+
+mtext(text = paste("p(12 correct | 70% chance) =", round(prob_12, 3)), side = 3)
+
+```
+
+$$
+p(12; 20, 0.7) = {20 \choose 12} 0.7^{12}0.3^{8}
+$$
+
+Or in `R`
+
+```{r, echo=TRUE}
+dbinom(x = 12, size = 20, prob = 0.7)
+```
+
+## Likelihood
+
+But!
+
+- Usually (all the time) we don't know the 'true' probability of a correct response
+- Rather we try to *estimate* it from data
+- Back to the example:
+    - we have given someone a 20 item memory test and they got 12 correct
+    - what is the most probable value of their 'true' accuracy?
+    - For that we need the *likelihood*
+    
+## Likelihood
+
+Switch the data and the parameters. 
+
+```{r, fig.height=5, fig.width=5}
+
+theta = seq(0,1, .001)
+plot(theta, dbinom(12, size = 20, prob = theta), type='l', xlab="p", ylab="Likelihood")
+
+max_l = 12/20
+
+lines(c(max_l,max_l), c(0, 1), lty=2, col='red')
+
+mtext(text = "L(p | 12/20 correct)", side = 3, line=.5)
+
+```
+
+# Examples
+
+## Normal Distribution
+
+Here is the Normal probability density function for $\mu = 0$ and $\sigma = 1$.
+
+```{r, fig.height=5, fig.width=5}
+
+x = seq(-4,4, .001)
+plot(x, dnorm(x), type='l', xlab="x", ylab="Density")
+
+```
+
+## Example with a Normal likelihood function
+
+Here's some data
+
+```{r, fig.width=5}
+set.seed(2468)
+Y = rnorm(20, 30, 10)
+hist(Y, xlab='')
+```
+
+## Example - known SD
+
+Let's assume that we know that $\sigma = 1$. What's the most likely value of $\mu$ for the first observation (Y[1] = `r Y[1]`)?
+
+```{r, fig.height=5, fig.width=5}
+
+mu = seq(Y[1]-10, Y[1]+10, .001)
+
+plot(mu, dnorm(Y[1], mean = mu, sd = 1), type = 'l', xlab=bquote(mu), ylab=bquote(L(mu~"|"~Y[1])))
+
+points(x=Y[1], y = 0, col='red', pch=16, cex=2)
+
+```
+
+## Example - known SD
+
+- But we have a *vector* of observations!
+- Assuming the observations are independent we can multiply each of the likelihoods
+- In our case $\theta = \{\mu, \sigma\}$
+
+$$
+L(\mathbf{\theta \mid y}) = \prod^i L(\theta \mid y_i)
+$$
+
+## Example - known SD
+
+- It's more common to work with the *log likelihood* ($LL$) so instead we can sum
+- We'll go into more detail on this later
+
+$$
+LL(\theta \mid \mathbf{y}) = \sum^i \ln L(\theta \mid y_i)
+$$
+
+##Example - known SD
+
+```{r}
+
+mu = seq(10, 40, .001)
+
+ll_norm = function(y, mu, sigma){
+  ll = 0
+  for (i in y){
+    ll = ll + dnorm(i, mean = mu, sd = sigma, log = T)
+  }
+  return(ll)
+}
+
+plot(mu, ll_norm(y=Y, mu = mu, sigma = 1), type='l', xlab=bquote(mu), ylab="log likelihood")
+
+```
+
+## Example - unknown mean and SD
+
+What if we don't know either $\mu$ or $\sigma$? The we have to search for the *pair* of parameters that maximize the likelihood.
+
+```{r}
+
+mu = seq(20, 35, length.out = 50)
+sigma = seq(5, 15, length.out = 50)
+
+ll_mat = matrix(NA, ncol = length(mu), nrow = length(sigma))
+
+for (i in 1:length(sigma)){
+  for (j in 1:length(mu)){
+    ll_mat[i,j] = ll_norm(y=Y, mu = mu[j], sigma = sigma[i])
+  }
+}
+
+par(mfrow=c(1,2))
+
+persp(x = sigma, y = mu, z = exp(ll_mat), theta = 45, phi=15, zlab = "Likelihood")
+
+contour(x = sigma, y = mu, z = exp(ll_mat), xlab=bquote(sigma), ylab=bquote(mu), nlevels = 15, drawlabels = F)
+points(10, 30, col='red', pch=16, cex=2)
+
+```
+
+<!-- More examples
+y ~ N(mu + b*X, sigma)
+y ~ N(mu, sigma)
+maybe useful when we get into model comparison?
+-->
+
+# Searching for Maximum Likelihood with R
+
+## Details
+
+- When using maximum likelihood estimation you typically actually try to *minimize* the negative log likelihood
+- `optim()` is a general-purpose function for finding parameter values that minimize $-LL$
+
+## Example
+
+- Let's return to the previous example with our data.
+- To follow along you can type:
+
+```{r, echo=T}
+# rnorm generates (pseudo) random numbers from a normal distribution
+set.seed(2468)
+Y = rnorm(n = 20, mean = 30, sd = 10)
+Y
+```
+
+## Example
+
+- First we need a function that returns the log likelihood of parameters given the data
+
+```{r, echo=T}
+ll_norm = function(theta, y){
+  mu = theta[1]
+  sigma = theta[2]
+  ll = 0
+  for (i in y){
+    # dnorm returns the density of a normal for a particular value (x) mean and
+    # standard deviation. Setting log = T gives us the LL
+    ll = ll + dnorm(x = i, mean = mu, sd = sigma, log = T)
+  }
+  return(-ll) # note the negative
+}
+```
+
+## Example
+
+```{r, echo=T}
+
+# starting values
+theta = runif(n = 2, min = 1, max = 10)
+
+# run the optimization
+out = optim(par = theta, fn = ll_norm, y = Y)
+
+# assess the parameter estimates
+out$par
+
+```
+
+## To do
+
+- More examples (e.g. linear regression?)
+- Model comparison via AIC and BIC?
+- Multiple starting values
+- Fitting to individuals vs the aggregate?
+
+# Extra Slides
+
+## Alternative likelihood function
+
+```{r, echo=T}
+ll_norm = function(theta, y){
+  mu = theta[1]
+  sigma = theta[2]
+  ll = sum(mapply(y, FUN = function(x) dnorm(x = x, mean = mu, sd = sigma, log = T)))
+  return(-ll)
+}
+```
