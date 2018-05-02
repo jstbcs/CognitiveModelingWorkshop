@@ -31,7 +31,11 @@ The workshop focusses mainly on the process models themselves --- we will apply 
 
 ## Workshop Outline
 
-The workshop will take place over two days in early August. Here's an outline of what we aim to cover on each day:
+The workshop will take place on **August 6th and 7th at the University of Missouri**. Tentatively we would start at 10/11 am on the 6th to allow for travel from WashU and go to 5/6 pm both days. 
+
+\newpage 
+
+Here's an outline of what we aim to cover on each day:
 
 #### Day 1
 
@@ -75,7 +79,7 @@ The workshop will take place over two days in early August. Here's an outline of
     - The benefits of fitting hierarchical models (how to get group *and* individual estimates)
     - Using JAGS and the `rjags` package to fit MPT and SDT models
 
-There will be time at the end of each day for attendees to ask questions regarding the modeling of their own data.
+**There will be time at the end of each day for attendees to ask questions regarding the modeling of their own data.**
 
 #### Potential Extra Topics
 
