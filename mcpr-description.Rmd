@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## General Description
 
-Cognitive process models provide a powerful tool to disentangle different cognitive processes contributing to the same observable responses. These models are successfully applied in many fields of psychology (e.g., memory, decision making, and social cognition). This two day workshop covers the essentials of cognitive modeling using the programming language `R`. Attendees will be introduced to several commonly used models in cognitive psychology and how to fit them using both maximum likelihood and hierarchical Bayesian methods. While the workshop is specifically aimed at graduate students in cognitive psychology, this workshop will be of interest to anyone looking to build their `R` modeling skills.
+Cognitive process models provide a powerful tool to disentangle different cognitive processes contributing to the same observable responses. These models are successfully applied in many fields of psychology (e.g., memory, decision making, and social cognition). This two day workshop covers the essentials of cognitive modeling using the programming language `R`. Attendees will be introduced to several commonly used models in cognitive psychology and how to fit them using both maximum likelihood and hierarchical Bayesian methods. <!--While the workshop is specifically aimed at graduate students in cognitive psychology, this workshop will be of interest to anyone looking to build their `R` modeling skills.-->
 
 ## Prerequisites
 
@@ -23,17 +23,15 @@ These are not absolutely required but would be useful:
 
 ## Cognitive Process Models
 
-The workshop focusses mainly on the process models themselves --- we will apply *signal detection models* and *multinomial processing tree models*. The workshop is not suitable for participants who want to learn generally applicable statistical analysis in `R`. If you have questions about the workshop objectives, please contact Julia or Stephen. An introduction to the main concepts of the workshop - maximum likelihood, multinomial process models, and signal detection theory - can be found [here (Chapters 2-4)](http://pcl.missouri.edu/jeff/sites/pcl.missouri.edu.jeff/files/b1_0.pdf)
+The workshop focusses mainly on the process models themselves --- we will apply *signal detection models* and *multinomial processing tree models*. The workshop is not suitable for participants who want to learn generally applicable statistical analysis in `R`. If you have questions about the workshop objectives, please contact [Julia](mailto:jmh4zc@mail.missouri.edu) or [Stephen](mailto:rhodessp@missouri.edu). An introduction to the main concepts of the workshop - maximum likelihood, multinomial process models, and signal detection theory - can be found [here (Chapters 2-4)](http://pcl.missouri.edu/jeff/sites/pcl.missouri.edu.jeff/files/b1_0.pdf)
 
-**Multinomial Processing Tree models** are useful for responses that fall into discrete categories (e.g. chose to buy product A, B, or C; voted for candidate W, X, Y, or Z; recognized a stimulus or not). They allow the researcher to model these observable responses as arising from different latent processes that form a tree-like structure [(see Erdfelder et al., 2009 for more background)](https://www.researchgate.net/profile/Morten_Moshagen/publication/220032645_Multinomial_processing_tree_models_A_review_of_the_literature/links/553e744b0cf210c0bdaaa5b9/Multinomial-processing-tree-models-A-review-of-the-literature.pdf)
+**Multinomial Processing Tree models** are useful for responses that fall into discrete categories (e.g. chose to buy product A, B, or C; voted for candidate W, X, Y, or Z; recognized a stimulus or not). They allow the researcher to model these observable responses as arising from different latent processes that form a tree-like structure [(see Erdfelder et al., 2009 for more background)](https://www.researchgate.net/profile/Morten_Moshagen/publication/220032645_Multinomial_processing_tree_models_A_review_of_the_literature/links/553e744b0cf210c0bdaaa5b9/Multinomial-processing-tree-models-A-review-of-the-literature.pdf).
 
 **Signal Detection Theory** offers a range of models to analyze data resulting from tasks requiring a choice between alternatives (e.g. is this stimulus old or new?). These models allow researchers to separate the participants' sensitivity (ability to do the task or discriminate between alternatives) from response bias (tendency to choose one of the options over the other).
 
 ## Workshop Outline
 
 The workshop will take place on **August 6th and 7th at the University of Missouri**. Tentatively we would start at 10/11 am on the 6th to allow for travel from WashU and go to 5/6 pm both days. 
-
-\newpage 
 
 Here's an outline of what we aim to cover on each day:
 
