@@ -1,0 +1,326 @@
+---
+title: "R"
+author: "Julia Haaf & Stephen Rhodes"
+output:
+  ioslides_presentation:
+    logo: pictures/MUlogoRGB.png
+    widescreen: true
+subtitle: A pragmatic introduction 
+---
+
+# Overview
+
+## What do you expect to learn? <!-- {.flexbox .vcenter} -->
+![](pictures/Expectations-reality.png)
+
+</br>
+
+## Hint
+<div class="columns-2">
+R is a programming *language* (Scripting language)
+
+- Vocabulary
+- Grammar
+
+### Learning by doing!
+
+```{r echo = FALSE, fig.height = 6, out.width = "350px"}
+par(mar = c(5, 6, 4, 2) + 0.1)
+y <- c((1:100 - 30)^3)
+plot(
+  1:100
+  , y
+  , type = "l"
+  # , xlim = c(33, 100)
+  , ylim = c(min(y) - 200, max(y))
+  , xlab = "time invested"
+  , ylab = "ability"
+  , axes = FALSE
+  , lwd = 5
+  , col = "skyblue"
+  , cex.lab = 2.5
+)
+box(lwd = 2)
+```
+
+</div>
+
+## Overview
+
+1. Get help
+2. Basic `R` functionality
+3. Use a `function()`
+4. Probability distributions
+5. Read data files from the internet
+6. Basic graphing
+7. Write a `function()`
+
+# FRst Experiments & Help
+
+## Trial & Error 1
+**Have a crack at the R console.**
+
+```{r eval = FALSE}
+help.start()
+citation()
+sessionInfo()
+```
+
+## HELP! | "How do I do this?" or "Why is it not working?"
+<div class="columns-2">
+Google
+
+- [StackOverflow](http://stackoverflow.com/)
+- [Cross-Validate](http://stats.stackexchange.com/)
+- R email lists
+- blogs
+
+In R
+
+```{r eval = FALSE}
+?sum
+?mean
+help("sd")
+
+??correlation
+```
+</br>
+</div>
+
+<div class = "notes">
+Show help function and talk about it.
+</div>
+
+
+# R basics
+## R as a calculator
+
+```{r}
+1+1
+12^4
+log(23)
+```
+
+## R as a fancy calculator | Variables
+
+```{r}
+x <- 10
+y <- 6
+x + y
+
+z <- x + y
+y/z
+```
+
+## R as a fancy calculator | Variables
+*Warning: R is case sensitive.*
+```{r}
+X <- 5 # Does not replace variable x
+x
+```
+
+
+## Variables
+You can save any kind of information as variables.
+
+```{r}
+name <- "Jed Bartlet"  # Character
+age <- 65           # Integer / Double
+president <- TRUE         # Boolean
+```
+
+Variables are called *objects*
+
+- vector (`c()`)
+- `matrix()`
+- `data.frame()`
+- `list()`
+
+## Vectors
+```{r}
+staff <- c("Josh", "CJ", "Sam")
+staff
+```
+
+### Indexing Objects
+```{r}
+staff[2]
+staff[c(1, 3)]
+```
+
+## Matrices
+Matrices are "tables" with at least one row and one column.
+
+```{r echo = FALSE}
+m <- matrix(1:9, nrow = 3)
+```
+
+```{r}
+m # A matrix
+```
+
+## Trial & Error 2
+**Make a matrix `m` with the help of the function `matrix`. How can matrices be indexed?**
+
+```{r eval = FALSE}
+?matrix
+```
+
+## Trial & Error 2
+**Make a matrix `m` with the help of the function `matrix`. How can matrices be indexed?**
+
+```{r}
+m <- matrix(c(1:9), nrow = 3)
+m[1, ] # First row
+m[, 3] # Third column
+m[1, 3] # Element in the first row and third column
+```
+
+## data.frame
+Vectors and matrices can only contain one data type.
+
+```{r}
+(x <- c(1:3))
+(x <- c(1:3, "four")) # all elements become characters
+```
+
+The data we analyze are different types.
+
+## data.frame {.build}
+A `data.frame` is
+
+- a table similar to a matrix
+- can contain different data types
+- usually has column names
+
+I usually use `data.frame`s for my data.
+
+The structure of the data should be
+
+- one observation per row
+- one variable per column
+
+## Trial & Error 3
+New data:
+
+```{r}
+name <- c("Ben", "Kathy", "Paul", "Julia", "Jeff")
+age <- c(24, 43, 32, 27, 60)
+job <- rep("teacher", 5)
+friends <- c(5, 2, 0, 3, 6)
+pets <- c(0, 2, 4, 1, 1)
+income <- c(":/", ":)", ":(", ":(", ":)")
+
+teachers <- data.frame(name, age, job, friends, pets, income)
+save(teachers, file = "data/teachers.RData")
+```
+
+```{r echo = FALSE}
+name <- c("Ben", "Kathy", "Paul", "Julia", "Jeff")
+age <- c(24, 43, 32, 27, 60)
+job <- rep("teacher", 5)
+friends <- c(5, 2, 0, 3, 6)
+pets <- c(0, 2, 4, 1, 1)
+income <- c(":/", ":)", ":(", ":(", ":)")
+
+teachers <- data.frame(name, age, job, friends, pets, income)
+save(teachers, file = "data/teachers.RData")
+```
+
+## Trial & Error 3
+**Load data `teachers.RData` or make the data frame yourself. Calculate the pets to friends ratio and add this variable to the `data.frame`.**
+
+**Calculate the average age for happy-face income and sad-face income.**
+
+## Trial & Error 3
+**Calculate the pets to friends ratio and add this variable to the `data.frame`.**
+
+```{r}
+teachers$ratio <- teachers$pets / teachers$friends
+teachers
+```
+
+**Calculate the average age for happy-face income and sad-face income.**
+
+```{r}
+mean(teachers$age[teachers$income == ":)"])
+tapply(teachers$age, teachers$income, mean)
+```
+
+## Swirl
+Try out the R-package `swirl`.
+
+```{r eval = FALSE}
+install.packages("swirl")
+library("swirl")
+
+install_from_swirl("R Programming")
+swirl()
+#try 10: lapply and sapply
+#try 11: vapply and tapply
+```
+
+# Deliberately use a function
+
+## Example
+
+```{r echo = F}
+set.seed(666)
+x <- rnorm(50, 10, 2)
+y <- rnorm(50, 12, 4)
+dat.fun <- data.frame(sub = 1:50, x, y)
+
+write.csv(dat.fun, "data/example_fun.csv", row.names = F)
+
+head(dat.fun)
+```
+
+## Analysis of this boring data set
+
+>- We want to analyse this data set with a $t$-test
+>- We need two functions:
+>  - One to read in the data (`read.csv`)
+>  - One to conduct the $t$-test (`t.test`)
+
+## read.csv {.build}
+
+```{r eval = F}
+?read.csv
+```
+
+It shows several related functions. `read.csv` has several *arguments*, most of them have a *default setting*.
+
+Minimal usage: Submit the filename to `read.csv`.
+
+```{r}
+example.dat <- read.csv(file = "data/example_fun.csv")
+head(example.dat)
+```
+
+## Trial & Error 4: t-test
+
+**Use `help()` to navigate the `t-test` function. What arguments to you need to submit to the function? What are the results?**
+
+## Trial & Error 4: t-test {.build}
+
+**Use `help()` to navigate the `t-test` function. What arguments to you need to submit to the function? What are the results?**
+
+```{r eval = F}
+?t.test
+```
+
+Easiest usage: submit x and y. You can choose one- or two-sided hypotheses, one-sample or paired *t*-test (default is between-participant) and whether variances are assumed to be equal or not...
+
+```{r}
+t.test(example.dat$x, example.dat$y, var.equal = T)
+```
+
+# Probability distributions
+
+## Probability distributions
+
+
+  
+
+
+
