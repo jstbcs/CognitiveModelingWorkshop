@@ -1,0 +1,55 @@
+---
+title: "Bayesian Estimation of Cognitive Models"
+author: "Stephen Rhodes and Julia Haaf"
+output: 
+  ioslides_presentation:
+    widescreen: true
+subtitle: Modeling the individual and the group
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Overview
+
+- Intro to Bayesian estimation
+- Heirarchical models
+- Signal detection model for recognition confidence
+- Model comparison
+
+# Introduction to Bayesian estimation
+
+## Purpose
+
+- To re-allocate credibility over parameters values based on the observed data (Kruschke, 2015)
+- Given the observed data, what parameter values should we most strongly believe in?
+- To obtain this we need to start with some *prior* expectation as to the probability of certain parameter values (more on this later)
+
+## Bayesian modeling
+
+- $\theta$ = parameter(s), $y$ = observed data
+- The model: $p(\theta, y) = p(\theta)p(y \mid \theta)$ (see Gelman et al., 2013)
+- To allocate credibility to the parameter values we can "condition" on the observed data. This gives us the *posterior* distribution of the parameters given the data:
+
+$$
+p(\theta \mid y) = \frac{p(\theta)p(y \mid \theta)}{p(y)}
+$$
+
+## Bayesian modeling
+
+$p(y)$ does not depend on the parameters so we can omit it in favor of the *unnormalized posterior*
+
+$$
+p(\theta \mid y) \propto p(\theta)p(y \mid \theta)
+$$
+
+## MCMC sampling
+
+- $p(\theta \mid y)$ is a *distribution* but the shape of that distribution is not always directly attainable.
+- For a normal prior on the mean and a normal likelihood function the posterior distribution for the mean is also normal. 
+- The normal is a *congugate prior* for the normal likelihood. (The Beta distribution is conjugate for the binomial distribution).
+- In other situations we must use sampling to approximate the posterior distribution. This is what is offered by software like JAGS, BUGS, Stan etc.
+
+
+
