@@ -13,7 +13,8 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Overview
 
-- Intro to Bayesian estimation
+- Introduction to Bayesian estimation and sampling
+- Introduction to JAGS and rjags
 - Heirarchical models
 - Signal detection model for recognition confidence
 - Model comparison
@@ -24,13 +25,18 @@ knitr::opts_chunk$set(echo = FALSE)
 
 - To re-allocate credibility over parameters values based on the observed data (Kruschke, 2015)
 - Given the observed data, what parameter values should we most strongly believe in?
-- To obtain this we need to start with some *prior* expectation as to the probability of certain parameter values (more on this later)
+- To obtain this we need to start with a model and some *prior* expectation as to the probability of certain parameter values in this model (more on this later)
 
 ## Bayesian modeling
 
 - $\theta$ = parameter(s), $y$ = observed data
+- $p(y \mid \theta)$ = the likelihood
+- $p(\theta)$ = the prior
+- $p(y)$ = probability of the data ("the evidence")
+<!-- 
 - The model: $p(\theta, y) = p(\theta)p(y \mid \theta)$ (see Gelman et al., 2013)
 - To allocate credibility to the parameter values we can "condition" on the observed data. This gives us the *posterior* distribution of the parameters given the data:
+-->
 
 $$
 p(\theta \mid y) = \frac{p(\theta)p(y \mid \theta)}{p(y)}
@@ -38,18 +44,494 @@ $$
 
 ## Bayesian modeling
 
-$p(y)$ does not depend on the parameters so we can omit it in favor of the *unnormalized posterior*
+$p(y)$ does not depend on the model parameters so we can omit it in favor of the *unnormalized posterior*
 
 $$
 p(\theta \mid y) \propto p(\theta)p(y \mid \theta)
 $$
 
-## MCMC sampling
+**The posterior is proportional to the prior times the likelihood**
+
+# MCMC sampling
+
+## Why sample?
 
 - $p(\theta \mid y)$ is a *distribution* but the shape of that distribution is not always directly attainable.
-- For a normal prior on the mean and a normal likelihood function the posterior distribution for the mean is also normal. 
+- For a normal prior on the mean and a normal likelihood function the posterior distribution for the mean is also a normal distribution. 
 - The normal is a *congugate prior* for the normal likelihood. (The Beta distribution is conjugate for the binomial distribution).
-- In other situations we must use sampling to approximate the posterior distribution. This is what is offered by software like JAGS, BUGS, Stan etc.
+- For complex models with multiple different priors on different parameters an analytic expression of the posterior distribution is not possible.
+- In these situations sampling is needed to approximate the posterior distribution. This is what is offered by software like JAGS, BUGS, Stan etc.
 
+## Intro to MCMC
 
+Markov Chain Monte Carlo
+
+- *Markov Chain* - a "memoryless" chain of events. Each step depends on the current state (e.g. parameter value) and not previous ones.
+- *Monte Carlo* - Repeated random sampling
+
+Goal of MCMC - to approximate a target distribution
+
+## The Metropolis Algorithm
+
+- We want to approximate $p(\theta \mid y)$ which is proportional to the prior times the likelihood. 
+- The Metropolis algorithm allows us to explore the space of possible parameter values. Values are "visited" in proportion to their density under the posterior.
+
+## The Metropolis Algorithm
+
+1. Select a stating point in the parameter space. This is $\theta_{\text{current}}$
+2. A move in parameter space is suggested from a *proposal distribution*. This is $\theta_{\text{new}} = \theta_{\text{current}} + \Delta\theta$
+3. The probability that we accept the proposed move is: $p_{\text{accept}} = \min\left(\frac{f(\theta_{\text{new}})}{f(\theta_{\text{current}})}, 1\right)$
+4. Sample a uniform number between 0 and 1. If this number is smaller than $p_{\text{accept}}$ then we accept the proposal and $\theta_{\text{new}}$ becomes $\theta_{\text{current}}$ for the next step. If not we stick with the $\theta_{\text{current}}$ we had originally.
+5. Repeat steps 2-4 many times and record $\theta_{\text{current}}$ at the begginning of each loop.
+
+Note for our Bayesian purposes $f(x) = p(x)p(y \mid x)$.
+
+## The Metropolis Algorithm
+
+Why does it work?
+
+- If the proposed parameter value is "better"" then the current value (i.e. produces a higher posterior density) then it is *always* visited.
+- If it is not better than the current value it is visited in proportion to how it compares to the current value: $f(\theta_{\text{new}})/f(\theta_{\text{current}})$
+- Thus, values with a higher posterior density are visited more often. Running a long chain and assessing how often certain parameter values are represented gives us the posterior even if we don't know how to express its form analytically.
+
+## Metropolis Example
+
+```{r, echo=FALSE, fig.show='hide'}
+
+# load the functions
+source("metropolis-example.R")
+
+library(coda)
+
+```
+
+- Suppose we want to estimate the mean ($\mu$) IQ (or some other cognitive) score of a group of participants (N = `r N`).
+- The test is scaled to have a population standard deviation of 15 so we assume that this is known.
+
+```{r, echo=FALSE, fig.height=4}
+
+hist(Y, xlab = "Score", main = "Test Scores", col = "seagreen3")
+
+```
+
+## Metropolis Example
+
+- We need to choose a prior distribution for $\mu$
+- Here we use a normal distribution with a mean of `r prior_m` and standard deviation of `r prior_sd`
+
+```{r, echo=FALSE}
+
+curve(dnorm(x = x, prior_m, prior_sd), from = prior_m-prior_sd*3, to = prior_m+prior_sd*3, xlab = bquote(mu), ylab="", main = "Prior", col = "darkgreen", lwd = 2)
+
+```
+
+## Metropolis Example
+
+- The script `metropolis-example.R` contains code implementing a Metropolis algoithm
+
+```{r, echo=FALSE}
+
+# plot the steps in the chain
+plot(samples, xlab = "Step", ylab = bquote(mu), type="l", col="blue")
+
+```
+
+## Let's take a look at some steps
+
+<div class="columns-2">
+
+```{r, echo=FALSE, fig.width=5}
+
+step = 500:504
+
+mu = c(105, 111, 111, 109, 113)
+
+plot(step, mu, xlab = "Step", ylab = bquote(mu), type="l", col="blue")
+points(step[1], mu[1], pch=16, cex=2, col="red")
+
+```
+
+</br>
+
+**Step 500**
+
+- The current value of $\mu$ is `r mu[1]`. A new value is proposed from a normal distribution with a mean of `r mu[1]` and a standard deviation of 5. The proposed value is 111.
+- Next we calculate $p(\mu)p(y \mid \mu)$ for both the current and proposed values of $\mu$ (we use the `dnorm` function twice as both the prior and the likelihood are normal).
+- In this case $p_{\text{accept}} = 1$ so we accept the proposal for step 501
+
+</div>
+
+## Let's take a look at some steps
+
+<div class="columns-2">
+
+```{r, echo=FALSE, fig.width=5}
+
+plot(step, mu, xlab = "Step", ylab = bquote(mu), type="l", col="blue")
+points(step[2], mu[2], pch=16, cex=2, col="red")
+
+```
+
+</br>
+
+**Step 501**
+
+- The current value of $\mu$ is `r mu[2]`. The proposed value is 103.
+- The ratio of $p(\mu)p(y \mid \mu)$ for proposed relative to current value of $\mu$ gives $p_{\text{accept}} = .4$
+- The number sampled via `runif(n = 1, min = 0, max = 1)` is 0.6 so the proposal is *rejected*
+- We stick with 111 for the next step
+
+</div>
+
+## Let's take a look at some steps
+
+<div class="columns-2">
+
+```{r, echo=FALSE, fig.width=5}
+
+plot(step, mu, xlab = "Step", ylab = bquote(mu), type="l", col="blue")
+points(step[3], mu[3], pch=16, cex=2, col="red")
+
+```
+
+</br>
+
+**Step 502**
+
+- The current value of $\mu$ is `r mu[3]`. The proposed value is `r mu[4]`.
+- The ratio of $p(\mu)p(y \mid \mu)$ for proposed relative to current value of $\mu$ gives $p_{\text{accept}} = .8$
+- The number sampled via `runif(n = 1, min = 0, max = 1)` is 0.34 so the proposal is *accepted*
+- The current value is set to `r mu[4]` for step 503.
+
+and so on...
+
+</div>
+
+## It works! 
+
+For a normal likelihood with a normal prior on the mean the form of the posterior distribution is known. So we can compare the results. 
+
+```{r, echo=FALSE}
+
+# plot the histogram
+hist(samples, xlab = bquote(mu), main = paste0("N samples = ", length(samples)), col = "grey", breaks = 30, probability = T)
+
+# calculate the exact form of the posterior to compare to the samples
+#post = posterior_quantities(y = Y, prior_mean = prior_m, prior_sd = prior_sd)
+curve(dnorm(x, mean = post[1], sd = post[2]), from = min(samples), to = max(samples), col = "red", lwd = 2, add = T)
+
+```
+
+## It works! 
+
+Increasing the number of steps improves the approximation.
+
+```{r, echo=FALSE}
+
+samples2 = metropolis_iq(y = Y, 
+                        prior_mean = prior_m,
+                        prior_sd = prior_sd, 
+                        proposal_sd = 5,
+                        n_samples = 10000, 
+                        start = 100)
+
+# plot the histogram
+hist(samples2, xlab = bquote(mu), main = paste0("N samples = ", length(samples2)), col = "grey", breaks = 30, probability = T)
+
+# calculate the exact form of the posterior to compare to the samples
+#post = posterior_quantities(y = Y, prior_mean = prior_m, prior_sd = prior_sd)
+curve(dnorm(x, mean = post[1], sd = post[2]), from = min(samples2), to = max(samples2), col = "red", lwd = 2, add = T)
+
+```
+
+# How accurate is the MCMC chain?
+
+## Things to consider
+
+- Burn in (or warm up)
+- Autocorrelation
+- Effective Sample Size (ESS)
+- Convergence and the Potential Scale Reduction Factor (PSRF)
+- Thinning
+
+## Burn in (or warm up)
+
+```{r, echo=FALSE}
+
+samples3 = metropolis_iq(y = Y, prior_mean = prior_m, prior_sd = prior_sd, proposal_sd = 1, n_samples = 1000, start = 0)
+
+plot(samples3, xlab = "Step", ylab = bquote(mu), type="l", col="blue")
+
+```
+
+## Autocorrelation
+
+```{r, echo=FALSE}
+
+samples4 = metropolis_iq(y = Y, prior_mean = prior_m, prior_sd = prior_sd, proposal_sd = .1, n_samples = 1000, start = 110)
+
+plot(samples4, xlab = "Step", ylab = bquote(mu), type="l", col="blue")
+
+```
+
+## Autocorrelation
+
+```{r, echo=FALSE}
+
+par(mfrow=c(1,2))
+autocorr.plot(as.mcmc(samples4), auto.layout = F)
+autocorr.plot(as.mcmc(samples), auto.layout = F)
+
+```
+
+## Effective Sample Size
+
+A way of estimating the number of independent samples once accounting for autocorrelation:
+
+$$
+ESS = \frac{N}{1 + 2\sum_{k = 1}^{\infty} \rho_k}
+$$
+
+Where $\rho_k$ is the autocorrelation at lag $k$. Think of this as dividing the number of samples by the amount of autocorrelation. In practice the sum stops when the autocorrelation is small (e.g. $\rho_k < 0.05$; see Kruschke, 2015, p. 184).
+
+## Convergence
+
+How do we know that we have converged onto a stable distribution?
+
+```{r, echo=FALSE}
+
+samples5 = metropolis_iq(y = Y, prior_mean = prior_m, prior_sd = prior_sd, proposal_sd = 5, n_samples = 1000, start = 100)
+
+samples6 = metropolis_iq(y = Y, prior_mean = prior_m, prior_sd = prior_sd, proposal_sd = 5, n_samples = 1000, start = 120)
+
+plot(samples5, xlab = "Step", ylab = bquote(mu), type="l", col="blue", ylim=c(100, 120))
+lines(samples6, col = "orchid")
+abline(v = 100, col="red", lty=2)
+
+```
+
+## Convergence
+
+- Run multiple sequences (*chains*) with different starting points
+- Compare variation between different chains to variation within chains. When these are approximately equal we can claim to have converged on the target distribution.
+- This is measured via $\hat{R}$ and convetionally a value $< 1.1$ is considered converged.
+- $\hat{R}$ is also refered to as the Gelman-Rubin convergence diagnostic or the Potential Scale Reduction Factor (PSRF).
+
+## Convergence
+
+```{r, echo=FALSE, fig.width=10}
+
+par(mfrow=c(1,2))
+# converged
+plot(samples5, xlab = "Step", ylab = bquote(mu), type="l", col="blue", ylim=c(100, 120))
+lines(samples6, col = "orchid")
+
+R_hat = round(gelman.diag(mcmc.list(as.mcmc(samples5), as.mcmc(samples6)))$psrf[1,1], 2)
+
+text(x = 600, y = 118, labels = bquote(hat(R) %~~% .(R_hat)))
+
+# not converged
+samples7 = metropolis_iq(y = Y - 5, prior_mean = prior_m, prior_sd = prior_sd, proposal_sd = 5, n_samples = 1000, start = 118)
+
+plot(samples5, xlab = "Step", ylab = bquote(mu), type="l", col="blue", ylim=c(100, 120))
+lines(samples7, col = "orchid")
+
+R_hat = round(gelman.diag(mcmc.list(as.mcmc(samples5), as.mcmc(samples7)))$psrf[1,1], 2)
+
+text(x = 600, y = 118, labels = bquote(hat(R) %~~% .(R_hat)))
+
+```
+
+## Thinning
+
+```{r, echo=FALSE, fig.width=10}
+
+par(mfrow=c(1,2))
+
+samples8 = metropolis_iq(y = Y, prior_mean = prior_m, prior_sd = prior_sd, proposal_sd = .5, n_samples = 10000, start = 110)
+
+plot(samples8, xlab = "Step", ylab = bquote(mu), main = "Full Chain", type="l", col="blue")
+
+plot(samples8[seq(1, 10000, 10)], xlab = "Step", ylab = bquote(mu), main = "Keep every 10th sample", type="l", col="blue")
+
+```
+
+## Thinning
+
+```{r, echo=FALSE, fig.width=10}
+
+par(mfrow=c(1,2))
+
+autocorr.plot(as.mcmc(samples8), auto.layout = F, main = "Full Chain")
+autocorr.plot(as.mcmc(samples8[seq(1, 10000, 100)]), auto.layout = F, main = "Keep every 10th sample")
+
+```
+
+## Thinning
+
+- If autocorrelation is really bad thinning might help, but it might suggest deeper problems with your model (see Gelman et al., 2014)
+- It has been claimed that thinning is "often unnecessary and always inefficient" ([Link & Eaton, 2012](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/j.2041-210X.2011.00131.x)). 
+- Often it is better to keep the full chains than throw information away.
+
+# Gibbs Sampling
+
+## Reminder of the Metropolis algorithm
+
+1. Select a stating point in the parameter space.
+2. A move in parameter space is suggested from a *proposal distribution*.
+3. We work out the probability of accepting the move via $p_{\text{accept}} = \min\left(\frac{f(\theta_{\text{new}})}{f(\theta_{\text{current}})}, 1\right)$.
+4. If a uniform(0, 1) number is smaller than $p_{\text{accept}}$ then we accept the new parameter value for the next cycle.
+5. Repeat steps 2-4 many times.
+
+## Gibbs Sampling
+
+More complicated than our Metropolis algorithm but better for large numbers of parameters, which easily occurs in hierarchical modeling. Imagine a two parameter situation $\{\theta_1, \theta_2\}$ with independent prior distributions $p(\theta_1, \theta_2) = p(\theta_1)p(\theta_2)$.
+
+1. Start at a random point in the (two dimensional) parameter space.
+2. Select one of the parameters (e.g. $\theta_1$). Sample a new value for it from $p(\theta_1 \mid \theta_2, y)$ using the current value of the other parameters (in this case, $\theta_2$).
+3. The sampled value comes directly from the posterior of $\theta_1$ conditional on the current value of $\theta_2$ so the move is *always* accepted.
+4. Go back to step 2 and repeat many times.
+
+To do this we need to know the conditional distributions for each parameter given each of the others $p(\theta_i \mid \theta_{i \neq j}, y)$. Luckily software (JAGS) can do this for us! 
+
+## End of the introduction to sampling
+
+This drew heavily on:
+
+- Kruschke (2015). Doing Bayesian Data Analysis: A Tutorial with R, JAGS, and Stan. Chapter 7.
+- Gelman et al. (2014). Bayesian Data Analysis (3rd edition). Chapters 11 and 12.
+
+# JAGS and rjags
+
+## What is JAGS?
+
+- Just Another Gibbs Sampler ([Plummer, 2003](https://www.r-project.org/conferences/DSC-2003/Proceedings/Plummer.pdf), [user manual](https://sourceforge.net/projects/mcmc-jags/files/Manuals/4.x/jags_user_manual.pdf/download))
+- Samples from the posterior distribution for you!
+- Preceded by BUGS ([Lunn et al., 2009](https://wiki.helsinki.fi/download/attachments/59060372/BUGSproject.pdf)) and uses a similar model language.
+- `rjags` ([Plummer, 2016](https://cran.r-project.org/web/packages/rjags/rjags.pdf)) allows R and JAGS to work together.
+
+## Basic JAGS Model
+
+```{r, eval = F, echo = T}
+model {
+  for (i in 1:N){
+  # likelihood
+  }
+  # priors
+}
+```
+
+## Basic JAGS Model
+
+For our IQ example:
+
+```{r, eval = F, echo = T}
+model {
+  for (i in 1:N){
+  # likelihood
+    y[i] ~ dnorm(mu, 1/15^2) # normal likelihood with known SD of 15
+  }
+  # prior
+  mu ~ dnorm(prior_m, 1/prior_sd^2) # normal prior on mu
+  
+  prior_m <- 100
+  prior_sd <- 10
+}
+```
+
+## Some things to note
+
+- JAGS works with *precision* (often denoted $\tau$) rather than standard deviation ($\tau = 1/\sigma^2$)
+- Variables with a distribution are assigned with `~`
+- Deterministic relations are assigned with `<-`
+
+## Basic rjags
+
+```{r, echo=FALSE, fig.show='hide', warning=F, message=F}
+
+library(rjags)
+library(coda)
+
+set.seed(123)
+N = 100
+Y = rnorm(N, mu_real, 15) # data
+
+data_list = list('y' = Y,
+            'N' = N)
+
+model = "
+  model {
+    for (i in 1:N){
+      # likelihood
+      y[i] ~ dnorm(mu, 1/15^2) # normal likelihood with known SD of 15
+    }
+    # prior
+    mu ~ dnorm(prior_m, 1/prior_sd^2) # normal prior on mu
+
+  prior_m <- 100
+  prior_sd <- 10
+}
+"
+
+# create the JAGS model. n.adapt 'tunes' the samplers and don't contribute to the mcmc chains - rjags will warn you if n.adapt is too small
+jags <- jags.model(file = textConnection(model), data = data_list, n.chains = 4, n.adapt = 1000, quiet = T)
+
+update(jags, 1000) # warm up
+
+samples = coda.samples(model = jags, variable.names = "mu", n.iter = 1000)
+```
+
+`rjags-basics.R` shows how to run this basic model with `rjags`
+
+- The model is saved as a string (or can be a separate .txt file)
+- `jags.model` creates the graphical model and tunes the sampler. Here we specify how many chains we want.
+- `update` is used to warm up the model (these samples are not kept)
+- `coda.samples` returns `n.iter` samples per chain. Returns an `mcmc.list` object.
+
+## Basic rjags
+
+```{r, eval = F, echo = T}
+
+# put the data in a list
+data_list = list('y' = Y,
+            'N' = N)
+
+# create the jags model
+jags <- jags.model(file = textConnection(model),
+                   data = data_list, 
+                   n.chains = 4, 
+                   n.adapt = 1000)
+
+# warm up/ burn in
+update(jags, 1000)
+
+# run the samples
+samples = coda.samples(model = jags, 
+                       variable.names = "mu", 
+                       n.iter = 1000) 
+
+```
+
+## Basic rjags/ coda
+
+With the `samples` `mcmc.list` we can use the `coda` package to look at our samples.
+
+## Basic rjags/ coda
+
+```{r, echo=T, fig.width=10}
+plot(samples)
+```
+
+## Basic rjags/ coda
+
+```{r, echo=T}
+gelman.plot(samples)
+```
+
+## Basic rjags/ coda
+
+```{r, echo=T, fig.width=10}
+par(mfrow=c(2,2), mar=c(3,3,1,1))
+autocorr.plot(samples, auto.layout = F)
+```
 
