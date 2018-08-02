@@ -1,10 +1,10 @@
 ---
-title: "Bayesian Estimation of Cognitive Models"
+title: "Introduction to Bayesian Estimation and JAGS"
 author: "Stephen Rhodes and Julia Haaf"
 output: 
   ioslides_presentation:
+    logo: ../../Intro to R/pictures/MUlogoRGB.png
     widescreen: true
-subtitle: Modeling the individual and the group
 ---
 
 ```{r setup, include=FALSE}
@@ -14,11 +14,15 @@ knitr::opts_chunk$set(echo = FALSE)
 ## Overview
 
 - Introduction to Bayesian estimation and sampling
+    - What's the purpose of Bayesian estimation?
+    - MCMC sampling (Metropolis algorithm and Gibbs)
+    - How good are my samples?
+    
 - Introduction to JAGS and rjags
-- Heirarchical models
-- Signal detection model for recognition confidence
-- Model comparison
-
+    - How to write JAGS models and use rjags to run samples
+    - Looking at the posterior
+    - A basic hierarchical model
+    
 # Introduction to Bayesian estimation
 
 ## Purpose
@@ -27,7 +31,7 @@ knitr::opts_chunk$set(echo = FALSE)
 - Given the observed data, what parameter values should we most strongly believe in?
 - To obtain this we need to start with a model and some *prior* expectation as to the probability of certain parameter values in this model (more on this later)
 
-## Bayesian modeling
+## Bayesian estimation
 
 - $\theta$ = parameter(s), $y$ = observed data
 - $p(y \mid \theta)$ = the likelihood
@@ -42,7 +46,7 @@ $$
 p(\theta \mid y) = \frac{p(\theta)p(y \mid \theta)}{p(y)}
 $$
 
-## Bayesian modeling
+## Bayesian estimation
 
 $p(y)$ does not depend on the model parameters so we can omit it in favor of the *unnormalized posterior*
 
@@ -82,7 +86,7 @@ Goal of MCMC - to approximate a target distribution
 2. A move in parameter space is suggested from a *proposal distribution*. This is $\theta_{\text{new}} = \theta_{\text{current}} + \Delta\theta$
 3. The probability that we accept the proposed move is: $p_{\text{accept}} = \min\left(\frac{f(\theta_{\text{new}})}{f(\theta_{\text{current}})}, 1\right)$
 4. Sample a uniform number between 0 and 1. If this number is smaller than $p_{\text{accept}}$ then we accept the proposal and $\theta_{\text{new}}$ becomes $\theta_{\text{current}}$ for the next step. If not we stick with the $\theta_{\text{current}}$ we had originally.
-5. Repeat steps 2-4 many times and record $\theta_{\text{current}}$ at the begginning of each loop.
+5. Repeat steps 2-4 many times and record $\theta_{\text{current}}$ at the beginning of each loop.
 
 Note for our Bayesian purposes $f(x) = p(x)p(y \mid x)$.
 
@@ -127,7 +131,7 @@ curve(dnorm(x = x, prior_m, prior_sd), from = prior_m-prior_sd*3, to = prior_m+p
 
 ## Metropolis Example
 
-- The script `metropolis-example.R` contains code implementing a Metropolis algoithm
+- The script `metropolis-example.R` contains code implementing a Metropolis algorithm
 
 ```{r, echo=FALSE}
 
@@ -314,8 +318,8 @@ abline(v = 100, col="red", lty=2)
 
 - Run multiple sequences (*chains*) with different starting points
 - Compare variation between different chains to variation within chains. When these are approximately equal we can claim to have converged on the target distribution.
-- This is measured via $\hat{R}$ and convetionally a value $< 1.1$ is considered converged.
-- $\hat{R}$ is also refered to as the Gelman-Rubin convergence diagnostic or the Potential Scale Reduction Factor (PSRF).
+- This is measured via $\hat{R}$ and conventionally a value $< 1.1$ is considered converged.
+- $\hat{R}$ is also referred to as the Gelman-Rubin convergence diagnostic or the Potential Scale Reduction Factor (PSRF).
 
 ## Convergence
 
@@ -444,6 +448,18 @@ model {
 - JAGS works with *precision* (often denoted $\tau$) rather than standard deviation ($\tau = 1/\sigma^2$)
 - Variables with a distribution are assigned with `~`
 - Deterministic relations are assigned with `<-`
+- Unlike `R`, JAGS does not 'vectorize' so `for` loops are necessary
+
+```{r, echo=T}
+a = c(1,2,3,4,5); b = 10; n = length(a)
+
+# in R
+x <- a*b 
+# in JAGS
+for (i in 1:n){
+  x[i] <- a[i]*b
+}
+```
 
 ## Basic rjags
 
@@ -535,3 +551,117 @@ par(mfrow=c(2,2), mar=c(3,3,1,1))
 autocorr.plot(samples, auto.layout = F)
 ```
 
+# Hierarchical Models | Model group and individual
+
+## Why go hierarchical?
+
+- We don't have to choose between throwing away information (individual differences) and having to run 1000s of trials per participant.
+- Instead we can simultaneously estimate population characteristics (parameters) while also getting parameters for each individual.
+- With Bayesian estimation you can consider a wide range of contrasts (not limited by family wise error) as the posterior distribution does not change depending on how you look at it (see Kruschke, 2015, p. 328).
+- *Shrinkage* - individual estimates are "shrunk" toward the grand mean
+    - Shrinkage is strongest for extreme values
+    - Amount of shrinkage is determined by the data
+
+## Hierarchical example - data
+
+```{r, fig.width=10}
+I = 30 # number of participants
+J = 10 # number of trials per participant
+N = I*J # number of observations
+
+set.seed(123)
+# sample the 'true' participant means from a normal
+# with a population mean of 700 and sd of 100
+mu_i = rnorm(I, 700, 100)
+
+# create the data frame to hold the simulated data
+hier_data = expand.grid(ppt = 1:I, trial = 1:J, y = NA)
+for (i in 1:I){
+  y_i = rnorm(J, mu_i[i], 100) # generate the trials for this participant
+  hier_data$y[hier_data$ppt == i] <- y_i # and add to the data frame
+}
+
+# observed participant means
+xbars = aggregate(y ~ ppt, data = hier_data, FUN = mean)
+
+with(hier_data, plot(ppt, y, pch=16, col="lightgrey", xlab="Participant #"))
+abline(h = mean(hier_data$y), lty=2)
+points(xbars, pch=21, cex=1.2, bg="red")
+legend("bottomleft", c("Trial", "P mean"), col=c("lightgrey", "black"), pt.bg=c("black", "red"), pch=c(16,21))
+
+```
+
+## Hierarchical example - model
+
+We want to estimate the grand mean reaction time (RT) for a given task along with mean RTs for each participant. Participants complete multiple trials.
+
+$$
+y_{ij} \sim \text{Normal}(\mu_i, \sigma)
+$$
+
+$y_{ij}$ is the RT for the $i$th participant on the $j$th trial. The individual means $\mu_i$ are drawn from a population distribution, which we also assume is normal.
+
+$$
+\mu_i \sim \text{Normal}(m, s)
+$$
+
+$m$ and $s$ are *hyperparameters*. $m$ is the grand mean reaction time, $s$ is between participant variability in mean RTs.
+
+## Hierarchical example - priors
+
+We need priors for three things:
+
+$$
+\sigma \sim \text{Gamma}(a, b) \\
+m \sim \text{Normal}(c, d) \\
+s \sim \text{Gamma}(a, b)
+$$
+
+## Hierarchical example - priors
+
+We want to choose values of $a$, $b$, $c$, $d$ so that our priors are *mildly informative*. 
+
+What is *mildly informative* depends on the scale you are using. They should be *broad* but also place low probability density on extreme values.
+
+Here we are measuring RT in milliseconds so we should keep that in mind.
+
+## Hierarchical example - priors
+
+For the particular task we are using we expect the grand mean reaction time to be around 800 ms and we don't expect it to be less than 200 ms or more than 1400 ms. So we could choose the values of $a = 800$ and $b = 200$ for our prior on $m$.
+
+```{r, fig.height=4}
+curve(dnorm(x, 800, 200), from=100, to=1500, ylab="Prior Density", xlab="m", col="dodgerblue", lwd=3)
+```
+
+## Hierarchical example - priors
+
+For SD we are less sure of what to expect. Therefore we choose shape ($a = 2$) and rate ($b = 0.01$) values that give a broad gamma prior. 
+
+```{r, fig.height=4}
+curve(dgamma(x, 2, .01), from=0, to=1000, ylab="Prior Density", xlab="", col="forestgreen", lwd=3)
+```
+
+## Hierarchical example - JAGS model
+
+```{r, eval = F, echo = T}
+
+model {
+  for (n in 1:N){
+    # likelihood
+    y[n] ~ dnorm(mu[id[n]], 1/sigma^2)
+  }
+  # sample participant parameters from population distribution
+  for (i in 1:I){
+    mu[i] ~ dnorm(m, 1/s^2)
+  }
+  # priors
+  m ~ dnorm(800, 1/200^2) 
+  s ~ dgamma(2, .01)
+  sigma ~ dgamma(2, .01) # a gamma prior on SD
+}
+
+```
+
+## Hierarchical example - rjags
+
+`rjags-basic-hier.R` simulates some data and demonstrates this model.
