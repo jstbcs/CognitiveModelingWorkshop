@@ -1,0 +1,27 @@
+---
+title: "Bayesian Estimation of Cognitive Models"
+author: "Stephen Rhodes and Julia Haaf"
+output: 
+  ioslides_presentation:
+    logo: ../../Intro to R/pictures/MUlogoRGB.png
+    widescreen: true
+subtitle: Modeling the individual and group
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Overview
+
+We're going to work through some example models
+
+- Change detection data (from yesterday)
+- SDT model of confidence rating data
+- Analysis of recall error
+
+These examples use binomial (accuracy), ordinal, and (near) continuous data, respectively.
+
+
+
+
