@@ -1,0 +1,79 @@
+---
+title: "High-Threshold Models"
+author: "Julia Haaf & Stephen Rhodes"
+output:
+  ioslides_presentation:
+    logo: pictures/MUlogoRGB.png
+    widescreen: true
+subtitle: A pragmatic introduction 
+---
+
+# Signal Detection Experiment
+
+## Signal Detection Experiment | Example
+
+>- Subliminal perception
+>- Very brief presentation of a word vs. no word
+>- Signal: + ... TRUMP ... *****
+>- Noise: + ... &emsp; &emsp; &emsp; ... *****
+
+## Signal Detection Experiment | Example
+
+**Results**
+
+| Stimulus | Present response | Absent Response | Total | 
+|:------|:-----:|:---------:|:------:| 
+|   Signal  |  75  |    25   |    100  | 
+|  Noise  |  30 |   20   |   50  | 
+|  Total  |  105 |   45   |     | 
+
+>- Hits, Misses, False Alarms, Correct Rejections
+>- vs. Accuracy
+
+## Modeling a Signal Detection Experiment
+
+>- Let $Y_h$, $Y_m$, $Y_f$, and $Y_c$ be random variables denoting counts of events
+>- $N_s$ and $N_n$ denote numbers of signal and noise trials
+>- How many independent pieces of data?
+
+>- Simple binomial model:
+\[
+Y_h \sim \mbox{Binomial}(N_s, p_h),\\
+Y_f \sim \mbox{Binomial}(N_n, p_f).
+\]
+
+>- Maximum-Likelihood estimates here are $\hat{p}_h = \frac{y_h}{N_s} = 75/100 = .75$ and $\hat{p}_f = \frac{y_f}{N_n} = 30/50 = .6$
+>- Any concerns with this model?
+
+## High-Threshold Model 
+
+```{r,engine='tikz',fig.ext='svg',fig.width=6, echo = F, fig.align='center'}
+\begin{tikzpicture}[level 1/.style={sibling distance=5cm}, level 2/.style={sibling distance=6cm}, grow=right, yscale=-1]
+
+% target tree
+\node [rectangle, draw] (a) {Signal}
+  child {node [rectangle, draw] (b) {Detect Signal} % detect
+    child {node [rectangle, draw] (c) [anchor=west] {hit}}}
+  child {node [circle, draw] (d) {!D} % not detect
+    child {node [rectangle, draw] (e) [anchor=west] {hit}}
+    child {node [rectangle, draw] (f) [anchor=west] {miss}}};
+% non-target tree    
+\node [rectangle, draw] (g) [right =5cm] {Noise}
+  child {node [rectangle, draw] (h) {Guess Signal} % detect
+    child {node [rectangle, draw] (i) [anchor=west] {false alarm}}}
+  child {node [rectangle, draw] (j) {Guess Noise} % not detect
+    child {node [rectangle, draw] (k) [anchor=west] {correct rejection}}};
+% add lines and labels
+\draw[->,>=stealth] (a) -- node[midway,fill=white] {$P_{T}$} (b);
+\draw[->,>=stealth] (a) -- node[midway,fill=white] {$1 - P_{T}$} (d);
+\draw[->,>=stealth] (d) -- node[midway,fill=white] {$B_{r}$} (e);
+\draw[->,>=stealth] (d) -- node[midway,fill=white] {$1 - B_{r}$} (f);
+\draw[->,>=stealth] (b) -- (c);
+\draw[->,>=stealth] (g) -- node[midway,fill=white] {$P_{N}$} (h);
+\draw[->,>=stealth] (g) -- node[midway,fill=white] {$1 - P_{N}$} (j);
+\draw[->,>=stealth] (j) -- node[midway,fill=white] {$B_{r}$} (k);
+\draw[->,>=stealth] (h) -- (i);
+
+\end{tikzpicture}
+
+```
