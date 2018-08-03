@@ -50,10 +50,9 @@ box(lwd = 2)
 1. Get help
 2. Basic `R` functionality
 3. Use a `function()`
-4. Probability distributions
-5. Read data files from the internet
-6. Basic graphing
-7. Write a `function()`
+4. Read data files from the internet
+5. Basic graphing
+6. Write a `function()`
 
 # FRst Experiments & Help
 
@@ -315,12 +314,130 @@ Easiest usage: submit x and y. You can choose one- or two-sided hypotheses, one-
 t.test(example.dat$x, example.dat$y, var.equal = T)
 ```
 
-# Probability distributions
+# Actual Data in R
 
-## Probability distributions
+## Getting data into R
+
+>- We used the `read.csv` function before.
+>- But what if you want data from another source?
+>- Like the internet?
+>- [wmPNAS2008](wmPNAS2008)
+
+## curl
+
+```{r}
+daturl <- curl::curl("https://raw.githubusercontent.com/PerceptionCognitionLab/data0/master/wmPNAS2008/lk2clean.csv")
+dat <- read.csv(daturl, header = T)
+
+head(dat)
+```
+
+## Let's make it prettier
+
+```{r}
+dat.pretty <- dat[, c("sub", "blk", "trl", "prch", "N", "ischange", "resp")]
+dat.pretty$accuracy <- dat.pretty$ischange == dat.pretty$resp
+
+dat.pretty$ischange <- factor(dat.pretty$ischange, labels = c("unchanged", "changed"))
+
+head(dat.pretty)
+```
+
+## Analyse it
+
+```{r}
+mean.acc <- with(dat.pretty, tapply(accuracy, list(prch, N, ischange), mean))
+mean.acc
+```
+
+## Plot it?
+
+```{r, echo = F}
+layout(matrix(1:2, ncol = 2))
+matplot(mean.acc[,,1], main = "Unchanged", ylab = "Accuracy"
+        , type = "b", pch = colnames(mean.acc), xaxt = "n")
+axis(1, at = 1:3, labels = rownames(mean.acc))
+matplot(mean.acc[,,2], main = "Changed", ylab = "Accuracy"
+        , type = "b", pch = colnames(mean.acc), xaxt = "n")
+axis(1, at = 1:3, labels = rownames(mean.acc))
+```
+
+## Counting
+
+```{r}
+(tab <- table(dat.pretty$resp, dat.pretty$ischange))
+```
+
+## Counting
+
+```{r}
+tab
+```
+
+- Hits, misses, false alarms, correct rejections
+
+## Counting
+
+```{r}
+tab
+```
+
+- Hits, misses, false alarms, correct rejections
+
+```{r}
+(outcomes <- c("hits" = tab[2, 2], "misses" = tab[1, 2]
+              , "fa" = tab[2, 1], "cr" = tab[1, 1]))
+```
 
 
-  
 
+#Programming in R
 
+##Functions
+
+>- You use them in data analysis all the time
+>- i.e. `mean()`, `plot()`, `t.test()`,...
+>- But you can also write your own!
+
+##Write your own function | Hello world!
+
+```{r}
+hello <- function(){
+  return("Hello World!")
+}
+
+hello()
+```
+
+##Write your own function | Calculator
+
+Goal: A function that takes two numbers as arguments and returns the sum of them.
+
+##Write your own function | Calculator
+
+Goal: A function that takes two numbers as arguments and returns the sum of them.
+
+```{r}
+gimme.sum <- function(x, y){
+  sum.xy <- x + y
+  return(sum.xy)
+}
+
+gimme.sum(99, 567)
+```
+
+##Write your own function | Your turn!
+
+Goal: A function that takes two vectors of numbers, x and y, and returns a vector with length of x with $\frac{x}{sd_y}$.
+
+##Write your own function | Your turn!
+
+Goal: A function that takes two vectors of numbers, x and y, and returns a vector with length of x with $\frac{x}{sd_y}$.
+
+```{r}
+what <- function(x, y){
+  sdy <- sd(y)
+  return(x/sdy)
+}
+```
 
