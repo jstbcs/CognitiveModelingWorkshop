@@ -47,7 +47,7 @@ Y_f \sim \mbox{Binomial}(N_n, p_f).
 
 ## High-Threshold Model 
 
-```{r,engine='tikz',fig.ext='svg',fig.width=6, echo = F, fig.align='center'}
+```{r htmodel,engine='tikz',fig.ext='svg',fig.width=6, echo = F, fig.align='center'}
 \begin{tikzpicture}[level 1/.style={sibling distance=5cm}, level 2/.style={sibling distance=6cm}, grow=right, yscale=-1]
 
 % target tree
@@ -58,7 +58,7 @@ Y_f \sim \mbox{Binomial}(N_n, p_f).
     child {node [rectangle, draw] (e) [anchor=west] {hit}}
     child {node [rectangle, draw] (f) [anchor=west] {miss}}};
 % non-target tree    
-\node [rectangle, draw] (g) [right =5cm] {Noise}
+\node [rectangle, draw] (g) [right =6cm] {Noise}
   child {node [rectangle, draw] (h) {Guess Signal} % detect
     child {node [rectangle, draw] (i) [anchor=west] {false alarm}}}
   child {node [rectangle, draw] (j) {Guess Noise} % not detect
