@@ -82,3 +82,67 @@ G2 <- 2*(mod.2$value - mod.g$value)
 qchisq(.95, df = 1) #Critical value for alpha = .05
 
 c(m1 = 1 - pchisq(G1, df = 1), m2 = 1 - pchisq(G2, df = 1)) #p-values
+
+
+
+############### First Signal Detection Model #################################################
+
+##Graph
+x <- seq(-3, 5, .01)
+y.noise <- dnorm(x)
+y.signal <- dnorm(x, 1.5)
+
+plot(x, y.noise
+     , type = "l", lwd = 2
+     , xlim = range(x)
+     , frame.plot = F
+     , ylab = "Density"
+     , xlab = "Sensory Strength"
+)
+lines(x, y.signal, col = "firebrick4", lwd = 2)
+# make.line(0)
+# make.line(1.5, 1.5)
+abline(v = 1, lwd = 2, col = "darkgreen")
+axis(3, at = c(0, 1.5), labels = c("", ""))
+mtext("d'", 3, line = .5, at = .75, cex = 1.3)
+text(1.2, .03, "c", cex = 1.3)
+text(-2, .25, "Stimulus absent")
+text(3.5, .25, "Stimulus present")
+
+##Model
+#log likelihood for signal detection
+ll.sd <- function(par, y){       #par = c(d', c) y = c(hit, miss, fa, cr)
+  p <- 1:4
+  p[1] <- 1 - pnorm(par[2], par[1], 1)
+  p[2] <- 1 - p[1]
+  p[3] <- 1 - pnorm(par[2], 0, 1)
+  p[4] <- 1 - p[3]
+  -sum(y * log(p))
+}
+
+#Data analysis
+y <- c(40, 10, 30, 20)
+par <- c(1, 0) #starting values
+out <- optim(par, ll.sd, y = y)
+out$par
+
+
+#####SDT for 2 conditions
+
+#par = c(d'1, d'2, c) y = c(hit1, miss1, fa1, cr1, hit2, miss2, fa2, cr2)
+nll.sdt <- function(par3, y8){            
+  ll.sd(par3[c(1, 3)], y8[1:4]) +     #condition 1
+    ll.sd(par3[2:3], y8[5:8])       #condition 2
+}
+
+### Data analysis
+dat <- c(22, 28, 22, 28   #h, m, f, c for condition 1
+         , 35, 15, 21, 29) #h, m, f, c for condition 2
+
+par.m <- c(1, 2, 1) #starting values
+out2  <- optim(par.m, nll.sdt, y8 = dat, hessian = T)
+
+
+
+
+

@@ -5,7 +5,7 @@ output:
   ioslides_presentation:
     logo: pictures/MUlogoRGB.png
     widescreen: true
-subtitle: A pragmatic introduction 
+subtitle: The Easy Way To Model
 ---
 
 # Signal Detection Experiment
@@ -422,7 +422,11 @@ c(G1, G2)
 c(m1 = round(1 - pchisq(G1, df = 1), 3), m2 = 1 - pchisq(G2, df = 1)) #p-values
 ```
 
+# Can We Detect Noise?
+
 ## Double-High-Threshold Model
+
+Plausible for memory research
 
 ```{r twohtmodel,engine='tikz',fig.ext='svg',fig.width=9.5, echo = F, fig.align='center'}
 \begin{tikzpicture}[level 1/.style={sibling distance=4cm}, level 2/.style={sibling distance=3cm}, grow=right, yscale=-1, xscale=1.4]
@@ -455,3 +459,117 @@ c(m1 = round(1 - pchisq(G1, df = 1), 3), m2 = 1 - pchisq(G2, df = 1)) #p-values
 
 \end{tikzpicture}
 ```
+
+## Express 2HT Model in model notation {.smaller}
+
+Single High-Threshold Model
+
+\[
+Y_{ih} \sim \mbox{Binomial}(N_{is}, d_i + (1 - d_i)g_i),\\
+Y_{if} \sim \mbox{Binomial}(N_{in}, g_i).
+\]
+
+**Trial & Error:** Change the notation above for the Double-High-Threshold model. Make a new `function()` like `nll.condition()` for the estimation of the Double-High-Threshold model.
+
+<!-- \[ -->
+<!-- Y_{ih} \sim \mbox{Binomial}(N_{is}, ?),\\ -->
+<!-- Y_{if} \sim \mbox{Binomial}(N_{in}, ?). -->
+<!-- \] -->
+
+```{r twohtmodelb,engine='tikz',fig.ext='svg',fig.width=7, echo = F, fig.align='right'}
+\begin{tikzpicture}[level 1/.style={sibling distance=4cm}, level 2/.style={sibling distance=3cm}, grow=right, yscale=-1, xscale=1.4]
+
+% target tree
+\node [rectangle, draw] (a) {Signal}
+  child {node [rectangle, draw] (b) {Detect Signal} % detect
+    child {node [rectangle, draw] (c) [anchor=west] {hit}}}
+  child {node [rectangle, draw] (d) {Fail to Detect} % not detect
+    child {node [rectangle, draw] (e) [anchor=west] {hit}}
+    child {node [rectangle, draw] (f) [anchor=west] {miss}}};
+% non-target tree    
+\node [rectangle, draw] (g) [right =6.5cm] {Noise}
+  child {node [rectangle, draw] (h) {Detect Noise} % detect
+    child {node [rectangle, draw] (i) [anchor=west] {correct rejection}}}
+  child {node [rectangle, draw] (j) {Fail to Detect} % not detect
+    child {node [rectangle, draw] (k) [anchor=west] {correct rejection}}
+    child {node [rectangle, draw] (l) [anchor=west] {false alarm}}};
+% add lines and labels
+\draw[->,>=stealth] (a) -- node[midway,fill=white] {$d$} (b);
+\draw[->,>=stealth] (a) -- node[midway,fill=white] {$1 - d$} (d);
+\draw[->,>=stealth] (d) -- node[midway,fill=white] {$g$} (e);
+\draw[->,>=stealth] (d) -- node[midway,fill=white] {$1 - g$} (f);
+\draw[->,>=stealth] (b) -- (c);
+\draw[->,>=stealth] (g) -- node[midway,fill=white] {$d$} (h);
+\draw[->,>=stealth] (g) -- node[midway,fill=white] {$1 - d$} (j);
+\draw[->,>=stealth] (j) -- node[midway,fill=white] {$g$} (k);
+\draw[->,>=stealth] (j) -- node[midway,fill=white] {$1 - g$} (l);
+\draw[->,>=stealth] (h) -- (i);
+
+\end{tikzpicture}
+```
+
+## Express 2HT Model in model notation {.smaller}
+
+Single High-Threshold Model
+
+\[
+Y_{ih} \sim \mbox{Binomial}(N_{is}, d_i + (1 - d_i)g_i),\\
+Y_{if} \sim \mbox{Binomial}(N_{in}, g_i).
+\]
+
+Double-High-Threshold Model
+
+\[
+Y_{ih} \sim \mbox{Binomial}(N_{is}, d_i + (1 - d_i)g_i),\\
+Y_{if} \sim \mbox{Binomial}(N_{in}, (1 - d_i)g_i).
+\]
+
+```{r twohtmodelc,engine='tikz',fig.ext='svg',fig.width=6, echo = F, fig.align='right'}
+\begin{tikzpicture}[level 1/.style={sibling distance=4cm}, level 2/.style={sibling distance=3cm}, grow=right, yscale=-1, xscale=1.4]
+
+% target tree
+\node [rectangle, draw] (a) {Signal}
+  child {node [rectangle, draw] (b) {Detect Signal} % detect
+    child {node [rectangle, draw] (c) [anchor=west] {hit}}}
+  child {node [rectangle, draw] (d) {Fail to Detect} % not detect
+    child {node [rectangle, draw] (e) [anchor=west] {hit}}
+    child {node [rectangle, draw] (f) [anchor=west] {miss}}};
+% non-target tree    
+\node [rectangle, draw] (g) [right =6.5cm] {Noise}
+  child {node [rectangle, draw] (h) {Detect Noise} % detect
+    child {node [rectangle, draw] (i) [anchor=west] {correct rejection}}}
+  child {node [rectangle, draw] (j) {Fail to Detect} % not detect
+    child {node [rectangle, draw] (k) [anchor=west] {correct rejection}}
+    child {node [rectangle, draw] (l) [anchor=west] {false alarm}}};
+% add lines and labels
+\draw[->,>=stealth] (a) -- node[midway,fill=white] {$d$} (b);
+\draw[->,>=stealth] (a) -- node[midway,fill=white] {$1 - d$} (d);
+\draw[->,>=stealth] (d) -- node[midway,fill=white] {$g$} (e);
+\draw[->,>=stealth] (d) -- node[midway,fill=white] {$1 - g$} (f);
+\draw[->,>=stealth] (b) -- (c);
+\draw[->,>=stealth] (g) -- node[midway,fill=white] {$d$} (h);
+\draw[->,>=stealth] (g) -- node[midway,fill=white] {$1 - d$} (j);
+\draw[->,>=stealth] (j) -- node[midway,fill=white] {$g$} (k);
+\draw[->,>=stealth] (j) -- node[midway,fill=white] {$1 - g$} (l);
+\draw[->,>=stealth] (h) -- (i);
+
+\end{tikzpicture}
+```
+
+
+## Double-High-Threshold Model in R
+
+```{r}
+#negative log likelihood for double high-threshold model
+nll.2ht <- function(par, y){
+d <- par[1]
+g <- par[2]
+p <- 1:4 # reserve space
+p[1] <- d + (1 - d) * g # probability of a hit
+p[2] <- 1 - p[1] # probability of a miss
+p[3] <- (1 - d) * g # probability of a false alarm
+p[4] <- 1 - p[3] # probability of a correct rejection
+return(-sum(y * log(p)))
+}
+```
+
