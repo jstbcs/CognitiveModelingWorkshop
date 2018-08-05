@@ -10,23 +10,14 @@ subtitle: The Real Deal
 
 ## Signal Detection Experiment | Example
 
->- Subliminal perception
->- Very brief presentation of a word vs. no word
->- Signal: + ... TRUMP ... *****
->- Noise: + ... &emsp; &emsp; &emsp; ... *****
-
-## Signal Detection Experiment | Example
-
-**Results**
+- Signal: + ... TRUMP ... *****
+- Noise: + ... &emsp; &emsp; &emsp; ... *****
 
 | Stimulus | Present response | Absent Response | Total | 
 |:------|:-----:|:---------:|:------:| 
 |   Signal  |  75  |    25   |    100  | 
 |  Noise  |  30 |   20   |   50  | 
 |  Total  |  105 |   45   |     | 
-
->- Hits, Misses, False Alarms, Correct Rejections
->- vs. Accuracy
 
 ## Signal Detection Theory vs. Signal Detection Experiment
 
@@ -101,6 +92,13 @@ text(.3, .4, "b", cex = 1.2)
 ## Density function in R
 
 ```{r}
+dnorm(0, mean = 0, sd = 1)
+```
+
+
+## Density function in R
+
+```{r}
 x <- seq(-3, 3, .01)
 head(x)
 y <- dnorm(x = x, mean = 0, sd = 1)
@@ -132,7 +130,7 @@ Let $F$ denote the cumulative distribution function (CDF) of random variable $X$
 par(mar = c(4, 4, .2, 2))
 layout(matrix(1:2, ncol = 2))
 plot(x, y, type = "l", lwd = 2
-     , ylab = "Density f(X)", xlab = "X")
+     , ylab = "Density f(x)", xlab = "x")
 text(2.5, .38, "pdf", cex = 1.3)
 
 make.line <- function(x, mu = 0, s2 = 1, fun = "pdf", ...){
@@ -158,16 +156,16 @@ make.poly <- function(a, b, mu = 0, s2 = 1, seq.by = .01, fun = "pdf", ...){
 make.poly(-3, .3, col = "cornflowerblue")
 make.line(.3, lwd = 2)
 lines(x, y, lwd = 2)
-text(.3, .4, "x", cex = 1.2)
+text(.5, .4, ".3", cex = 1.2)
 
 plot(x, pnorm(x), type = "l", lwd = 2
-     , ylab = "Cummulative Density", xlab = "X")
+     , ylab = "Cummulative Probability F(x)", xlab = "x")
 
-make.poly(-3, .3, col = "cornflowerblue", fun = "cdf")
+# make.poly(-3, .3, col = "cornflowerblue", fun = "cdf")
 make.line(.3, lwd = 2, fun = "cdf")
 lines(x, pnorm(x), lwd = 2)
-text(.3, .8, "x", cex = 1.2)
-text(-.5, .1, "F(x)", cex = 1.2)
+text(1.3, .58, "(.3, .62)", cex = 1.2)
+lines(c(-3, .3), pnorm(rep(.3, 2)), lwd = 2)
 ```
 
 ## Using CDF and pdf
