@@ -2,7 +2,7 @@
 library(rjags)
 library(coda)
 
-cd = read.table(file = "rouder08-longdata-0.5.dat")
+cd = read.table(file = "day2/bayesian-models/jags-change-det/rouder08-longdata-0.5.dat")
 
 head(cd)
 
