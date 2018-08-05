@@ -4,7 +4,7 @@ library(coda)
 # this loads the data from Pratte et al (2010) Separating Mnemonic Process From Participant and Item Effects in the Assessment of ROC Asymmetries. JEPLMC, 36(1), 224.
 # reshaped with code provided by Selker et al. https://osf.io/b8gcf/
 
-load("pratte10.RData")
+load("day2/bayesian-models/confidence-rating/pratte10.RData")
 
 str(pratte10_list)
 
@@ -40,7 +40,7 @@ if (SUBSET){
 
 
 # initialize the jags model
-rating_jags <- jags.model(file = "HierSDT_model.txt", data = pratte10_list, n.chains = 4, n.adapt = 1000)
+rating_jags <- jags.model(file = "day2/bayesian-models/confidence-rating/HierSDT_model.txt", data = pratte10_list, n.chains = 4, n.adapt = 1000)
 
 # warm up the chains
 update(rating_jags, 1000)

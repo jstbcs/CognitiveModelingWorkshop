@@ -1,7 +1,7 @@
 
 # maxmimum likelihood modeling of Zhang and Luck (2008, nature)
 
-de = read.table("zhang-luck08.dat")
+de = read.table("day2/bayesian-models/delayed-estimation/zhang-luck08.dat")
 # this data was uploaded by van den berg (2014) psych rev (paper here: http://www.cns.nyu.edu/malab/static/files/publications/2014%20Van%20den%20Berg%20Ma%20Psych%20Review.pdf)
 # data here: http://www.cns.nyu.edu/malab/static/files/dataAndCode/Van_den_Berg_2014_DATA.zip
 # the Zhang & Luck experiment is under E2 (see paper for other data sets)
