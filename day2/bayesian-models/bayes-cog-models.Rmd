@@ -23,5 +23,106 @@ We're going to work through some example models
 These examples use binomial (accuracy), ordinal, and (near) continuous data, respectively.
 
 
+# SDT confidence ratings
+
+```{r}
+
+
+ratingModel <- function(d, s, a, b, C, lastPoint = T){
+  # the parsimonius model from Selker et al
+  # https://osf.io/v3b76/
+  unb = -log((1 - 1:C/C)/(1:C/C))
+  
+  thresh = 1/2 + a*unb + b
+  
+  f = cumsum(rev(diff(pnorm(c(-Inf, thresh),0,1))))
+  h = cumsum(rev(diff(pnorm(c(-Inf, thresh),d,s))))
+  
+  if(!lastPoint){
+    f = f[1:(C-1)]
+    h = h[1:(C-1)]
+  }
+  
+  return(cbind(f, h))
+}
+
+# par(pty='s')
+# plot(ratingModel(d = 2, s = 1, a = 1, b = 0, C = 1000), ylim=c(0,1), xlim=c(0,1), type='l')
+# points(ratingModel(d = 2, s = 1, a = 1, b = 0, C = 6), ylim=c(0,1), xlim=c(0,1))
+
+
+plotSDT <- function(d = 2, s = 1, a = 1, b = 0, C = 6, title = F){
+  par(pty='m', mar=c(3,2,3,2))
+  
+  newcol = col2rgb("dodgerblue4")[,1]
+  newcol = rgb(red = newcol[1], green = newcol[2], blue = newcol[3], alpha = 50, maxColorValue = 255)
+  oldcol=rgb(1,1,1,.5)
+  xseq = seq(from=xrange[1], to=xrange[2], length.out = 1000)
+
+  unb = -log((1 - 1:C/C)/(1:C/C))
+  thresh = 1/2 + a*unb + b
+  thresh = thresh[1:(C-1)]
+  
+  xrange = c(-3, d+3*s)
+  yrange = c(0, max(dnorm(0), dnorm(d, d, s)))
+  plot(NA, ylim = yrange*c(0,1.5), xlim = xrange, ylab="", xlab="", axes=F)
+  
+  polygon(c(xrange[1], xseq, xrange[2]), c(0, dnorm(xseq), 0), col = newcol , border = NA)
+  curve(expr = dnorm(x, 0, 1), from=xrange[1], to=xrange[2], n = 10000, add = T)
+  polygon(c(xrange[1], xseq, xrange[2]), c(0, dnorm(xseq, d, s), 0), col = oldcol , border = NA)
+  curve(expr = dnorm(x, d, s), from=xrange[1], to=xrange[2], n = 10000, add = T)
+  
+  #text(x = 0, y = dnorm(0)+diff(yrange)*.1, labels = bquote(mu["new"]))
+  #text(x = d, y = dnorm(d, d, s)+diff(yrange)*.1, labels = bquote(mu["old"]))
+  
+  for (k in 1:(C-1)){
+    lines(x = c(thresh[k], thresh[k]), y = yrange*c(0, 1.35), lty=2, col='darkgrey')
+    text(x = thresh[k], y = yrange[2]*1.4, labels = bquote(lambda[.(k)]))
+  }
+  
+  label_x = c(xrange[1], thresh, xrange[2])[1:C] + diff(c(xrange[1], thresh, xrange[2]))/2
+  
+  text(x = label_x, y = yrange[2]*1.2, labels = 1:C, col='red')
+  
+  axis(1); box()
+  
+  if (title){
+    mtext(text = paste0("d = ", d, ", s = ", s, ", a = ", a, ", b = ", b))
+  }
+}
+
+
+par(pty='s')
+plot(ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 1000), ylim=c(0,1), xlim=c(0,1), type='l', xlab='false-alarm rate', ylab='hit rate')
+a = ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 6, lastPoint=F)
+points(a, ylim=c(0,1), xlim=c(0,1), pch=21, bg='grey')
+
+text(t(t(a)+c(.05,-.05)), labels = 5:1)
+
+
+par(mfrow=c(1,2))
+
+plotSDT(d = 2, s = 1.2, a = 1, b = -2/3, C = 6)
+mtext("Shift to the left (more liberal)")
+
+plotSDT(d = 2, s = 1.2, a = 1, b = 1, C = 6)
+mtext("Shift to the right (more conservative)")
+
+
+par(pty='s', mfrow=c(1,2))
+
+plot(ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 1000), ylim=c(0,1), xlim=c(0,1), type='l', xlab='false-alarm rate', ylab='hit rate')
+a = ratingModel(d = 2, s = 1.2, a = 1, b = -2/3, C = 6, lastPoint=F)
+points(a, ylim=c(0,1), xlim=c(0,1), pch=21, bg='grey')
+
+mtext("Shift to the left (more liberal)")
+
+plot(ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 1000), ylim=c(0,1), xlim=c(0,1), type='l', xlab='false-alarm rate', ylab='hit rate')
+a = ratingModel(d = 2, s = 1.2, a = 1, b = 1, C = 6, lastPoint=F)
+points(a, ylim=c(0,1), xlim=c(0,1), pch=21, bg='grey')
+mtext("Shift to the right (more conservative)")
+
+```
+
 
 

@@ -1,0 +1,56 @@
+# downloaded from https://osf.io/4pxyf/
+
+# Model from Selker et al. Parsimonious Estimation of SDT Models from Confidence Ratings (see https://osf.io/v3b76/)
+
+# Hierarchical SDT with confidence ratings that does not assume unequal variances
+
+model
+{	
+	## Parameter of interest
+	muMu ~ dnorm(1,1) I(0,)
+	sigmaMu ~ dnorm(1.1,1) I(1,5)	
+	aMu ~ dnorm(1,1) I(0,)
+	bMu ~ dnorm(0,1)
+	
+	# Set unbiased thresholds on the [0,1] line and the real line [-∞,∞]
+	for (c in 1:(nCat-1)) {
+		gam[c] <- c/nCat
+		gamReal[c] <- -log((1-gam[c])/gam[c])
+	}
+	
+	for (k in 1:nSubjs) {
+	
+		mu[k] ~ dnorm(muMu,1)
+		sigma[k] ~ dnorm(sigmaMu, 1)  # unequal-variance
+		lambda[k] <- 1/(sigma[k]^2)
+		
+		## Thresholds   
+		# Parameters to create biased thresholds; a = scale, b = shift
+		a[k] ~ dnorm(aMu,1)
+		b[k] ~ dnorm(bMu,1)
+		# Use regression function to estimate thresholds on real line
+		for (c in 1:(nCat-1)) {
+			dReal[k, c] <- a[k] * gamReal[c] + b[k] + .5
+		}
+
+		## Data 
+		# Translate continuous draws from the old/new distribution into 
+		# ordinal data using the thresholds on the real line
+		for (i in 1:nNoise[k]) { # for noise items
+			pNoise[k,i,1] <- pnorm(dReal[k,1], 0, 1)
+			for (c in 2:(nCat-1)) {
+				pNoise[k,i,c] <- pnorm(dReal[k,c], 0, 1) - sum(pNoise[k,i,1:(c-1)])
+			}
+			pNoise[k,i,nCat] <- 1 - sum(pNoise[k,i,1:(nCat-1)])
+			xNoise[k,i] ~ dcat(pNoise[k,i,1:nCat]) 	
+		}
+		for (j in 1:nSignal[k]) {	# for signal items
+			pSignal[k,j,1] <- pnorm(dReal[k,1], mu[k], lambda[k])
+			for (c in 2:(nCat-1)) {
+				pSignal[k,j,c] <- pnorm(dReal[k,c], mu[k], lambda[k]) - sum(pSignal[k,j,1:(c-1)])
+			}
+			pSignal[k,j,nCat] <- 1 - sum(pSignal[k,j,1:(nCat-1)])
+			xSignal[k,j] ~ dcat(pSignal[k,j,1:nCat])  	
+		}
+	}
+}

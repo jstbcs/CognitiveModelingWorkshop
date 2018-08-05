@@ -7,6 +7,8 @@ data=read.csv(text=intext)
 
 head(data)
 
+## Wide format for MLE
+
 counts = ddply(data, c('sub', 'prch', 'N'), summarize,
       H = sum(ischange == 1 & resp == 1),
       M = sum(ischange == 1 & resp == 0),
@@ -39,3 +41,20 @@ counts_wide_0.5 = counts_wide[,grep(colorder, pattern = "0.5")]
 
 write.table(x = counts_wide_0.5, file = "rouder08-data-0.5.dat")
 
+# -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ -~ 
+## Long format for JAGS
+
+data_long = ddply(data, c("sub", "prch", "N", "ischange"), summarize,
+      respchange = sum(resp), ntrials = length(resp))
+
+colnames(data_long)[1] = "ppt"
+
+data_long$ppt = as.numeric(as.factor(data_long$ppt)) # renumber participants 1:23
+
+setwd("../../../day2/bayesian-models/jags-change-det/")
+
+write.table(x = data_long, file = "rouder08-longdata-full.dat")
+
+data_long_0.5 = subset(data_long, prch==0.5)
+
+write.table(x = data_long_0.5, file = "rouder08-longdata-0.5.dat")
