@@ -1,0 +1,721 @@
+---
+title: "Signal Detection Theory"
+author: "Julia Haaf & Stephen Rhodes"
+output:
+  ioslides_presentation:
+    logo: pictures/MUlogoRGB.png
+    widescreen: true
+subtitle: The Real Deal
+---
+
+## Signal Detection Experiment | Example
+
+- Signal: + ... TRUMP ... *****
+- Noise: + ... &emsp; &emsp; &emsp; ... *****
+
+| Stimulus | Present response | Absent Response | Total | 
+|:------|:-----:|:---------:|:------:| 
+|   Signal  |  75  |    25   |    100  | 
+|  Noise  |  30 |   20   |   50  | 
+|  Total  |  105 |   45   |     | 
+
+## Signal Detection Theory vs. Signal Detection Experiment
+
+>- Signal Detection Theory (SDT): Model-based method of assessing performance
+>- Originally: Developed for signal detection experiments
+>- Now: Used for perception, memory, decision theory, attitude research, ...
+>- Originally: Two-choice task
+>- Now: Any form of forced-choice task including rating scales, continuous measures, ...
+
+## Signal Detection Theory
+
+Models are a bit more complicated and rely on some knowledge of continuous random variables.
+
+```{r, echo = F}
+x <- seq(-3, 3, .01)
+y <- dnorm(x)
+plot(x, y, yaxt = 'n', type = "l", lwd = 2, ylab = "")
+```
+
+
+# Probability Theory 101
+
+## Density function
+
+The density function (pdf) of a continuous random variable $X$ is a function such that the area under the function between $a$ and $b$ corresponds to the probability $Pr(a < x \leq b)$. The value of $f(x)$ is the probability density.
+
+## Density function
+
+The density function (pdf) of a continuous random variable $X$ is a function such that the area under the function between $a$ and $b$ corresponds to the probability $Pr(a < x \leq b)$. The value of $f(x)$ is the probability density.
+
+**Example**
+
+```{r, echo = F, fig.height=2.5, fig.asp = .5, fig.align='center'}
+par(mar = c(4, 4, 0, 2))
+plot(x, y, type = "l", lwd = 2
+     , ylab = "Density f(X)", xlab = "X")
+text(2.3, .38, "pdf of a normal", cex = 1.3)
+```
+
+## Density function
+
+The density function (pdf) of a continuous random variable $X$ is a function such that the area under the function between $a$ and $b$ corresponds to the probability $Pr(a < x \leq b)$. The value of $f(x)$ is the probability density.
+
+**Example**
+
+```{r, echo = F, fig.height=2.5, fig.asp = .5, fig.align='center'}
+par(mar = c(4, 4, 0, 2))
+plot(x, y, type = "l", lwd = 2
+     , ylab = "Density f(X)", xlab = "X")
+text(2.3, .38, "pdf of a normal", cex = 1.3)
+
+make.line <- function(x, mu = 0, s2 = 1, ...){
+  y <- dnorm(x, mu, sqrt(s2))
+  lines(x = rep(x, 2), y = c(0, y) , ...)
+}
+
+make.poly <- function(a, b, mu = 0, s2 = 1, seq.by = .01, ...){
+  y <- dnorm(seq(a, b, seq.by), mu, sqrt(s2))
+  xx <- c(seq(a, b, seq.by), seq(b, a, -seq.by))
+  yy <- c(y, rep(0, length(y)))
+  polygon(xx, yy, border = NA, ...)
+}
+
+make.poly(-1.2, .3, col = "cornflowerblue")
+make.line(-1.2, lwd = 2, col = 1)
+make.line(.3, lwd = 2)
+lines(x, y, lwd = 2)
+text(-1.2, .4, "a", cex = 1.2)
+text(.3, .4, "b", cex = 1.2)
+```
+
+## Density function in R
+
+```{r}
+dnorm(0, mean = 0, sd = 1)
+```
+
+
+## Density function in R
+
+```{r}
+x <- seq(-3, 3, .01)
+head(x)
+y <- dnorm(x = x, mean = 0, sd = 1)
+head(y)
+```
+
+## Density function in R
+
+```{r, fig.height=4, fig.width = 6, fig.align='center'}
+x <- seq(-3, 3, .01)
+y <- dnorm(x = x, mean = 0, sd = 1)
+
+plot(x, y, type = "l")
+```
+
+## Cumulative Distribution Function
+
+Let $F$ denote the cumulative distribution function (CDF) of random variable $X$. Then,
+\[F(x) = Pr(X \leq x)\].
+
+## Cumulative Distribution Function
+
+Let $F$ denote the cumulative distribution function (CDF) of random variable $X$.
+\[F(x) = Pr(X \leq x)\].
+
+**Example**
+
+```{r, echo = F, fig.height=3, fig.width = 8,  fig.align='center'}
+par(mar = c(4, 4, .2, 2))
+layout(matrix(1:2, ncol = 2))
+plot(x, y, type = "l", lwd = 2
+     , ylab = "Density f(x)", xlab = "x")
+text(2.5, .38, "pdf", cex = 1.3)
+
+make.line <- function(x, mu = 0, s2 = 1, fun = "pdf", ...){
+  if(fun == "pdf"){
+    y <- dnorm(x, mu, sqrt(s2))
+  }else{
+    y <- pnorm(x, mu, sqrt(s2))
+    }
+  lines(x = rep(x, 2), y = c(0, y) , ...)
+}
+
+make.poly <- function(a, b, mu = 0, s2 = 1, seq.by = .01, fun = "pdf", ...){
+  if(fun == "pdf"){
+    y <- dnorm(seq(a, b, seq.by), mu, sqrt(s2))
+  }else{
+    y <- pnorm(seq(a, b, seq.by), mu, sqrt(s2))
+    }
+  xx <- c(seq(a, b, seq.by), seq(b, a, -seq.by))
+  yy <- c(y, rep(0, length(y)))
+  polygon(xx, yy, border = NA, ...)
+}
+
+make.poly(-3, .3, col = "cornflowerblue")
+make.line(.3, lwd = 2)
+lines(x, y, lwd = 2)
+text(.5, .4, ".3", cex = 1.2)
+
+plot(x, pnorm(x), type = "l", lwd = 2
+     , ylab = "Cummulative Probability F(x)", xlab = "x")
+
+# make.poly(-3, .3, col = "cornflowerblue", fun = "cdf")
+make.line(.3, lwd = 2, fun = "cdf")
+lines(x, pnorm(x), lwd = 2)
+text(1.3, .58, "(.3, .62)", cex = 1.2)
+lines(c(-3, .3), pnorm(rep(.3, 2)), lwd = 2)
+```
+
+## Using CDF and pdf
+
+```{r, echo = F, fig.height=4, fig.width = 7, fig.align='center'}
+par(mar = c(4, 4, 0, 2))
+plot(x, y, type = "l", lwd = 2
+     , ylab = "Density f(X)", xlab = "X")
+text(2.3, .38, "pdf of a normal", cex = 1.3)
+
+make.line <- function(x, mu = 0, s2 = 1, ...){
+  y <- dnorm(x, mu, sqrt(s2))
+  lines(x = rep(x, 2), y = c(0, y) , ...)
+}
+
+make.poly <- function(a, b, mu = 0, s2 = 1, seq.by = .01, ...){
+  y <- dnorm(seq(a, b, seq.by), mu, sqrt(s2))
+  xx <- c(seq(a, b, seq.by), seq(b, a, -seq.by))
+  yy <- c(y, rep(0, length(y)))
+  polygon(xx, yy, border = NA, ...)
+}
+
+make.poly(-1.2, .3, col = "cornflowerblue")
+make.line(-1.2, lwd = 2, col = 1)
+make.line(.3, lwd = 2)
+lines(x, y, lwd = 2)
+text(-1.2, .4, "a", cex = 1.2)
+text(.3, .4, "b", cex = 1.2)
+```
+
+**What is $Pr(a < x \leq b)$**
+
+## Using CDF and pdf
+
+```{r, echo = F, fig.height=4, fig.width = 7, fig.align='center'}
+par(mar = c(4, 4, 0, 2))
+plot(x, y, type = "l", lwd = 2
+     , ylab = "Density f(X)", xlab = "X")
+text(2.3, .38, "pdf of a normal", cex = 1.3)
+
+make.poly(-3, .3, col = "cornflowerblue")
+# make.poly(-3, -1.2, col = adjustcolor("mediumorchid", .5))
+# make.line(-1.2, lwd = 2, col = 1)
+make.line(.3, lwd = 2)
+lines(x, y, lwd = 2)
+# text(-1.2, .4, "a", cex = 1.2)
+text(.3, .4, "b", cex = 1.2)
+```
+
+## Using CDF and pdf
+
+```{r, echo = F, fig.height=4, fig.width = 7, fig.align='center'}
+par(mar = c(4, 4, 0, 2))
+plot(x, y, type = "l", lwd = 2
+     , ylab = "Density f(X)", xlab = "X")
+text(2.3, .38, "pdf of a normal", cex = 1.3)
+
+make.line <- function(x, mu = 0, s2 = 1, ...){
+  y <- dnorm(x, mu, sqrt(s2))
+  lines(x = rep(x, 2), y = c(0, y) , ...)
+}
+
+make.poly <- function(a, b, mu = 0, s2 = 1, seq.by = .01, ...){
+  y <- dnorm(seq(a, b, seq.by), mu, sqrt(s2))
+  xx <- c(seq(a, b, seq.by), seq(b, a, -seq.by))
+  yy <- c(y, rep(0, length(y)))
+  polygon(xx, yy, border = NA, ...)
+}
+
+make.poly(-1.2, .3, col = "cornflowerblue")
+make.line(-1.2, lwd = 2, col = 1)
+make.line(.3, lwd = 2)
+lines(x, y, lwd = 2)
+text(-1.2, .4, "a", cex = 1.2)
+text(.3, .4, "b", cex = 1.2)
+```
+
+**What is $Pr(a < x \leq b)$**
+
+## Using CDF and pdf
+
+```{r, echo = F, fig.height=3, fig.width = 4.5, fig.align='center'}
+par(mar = c(4, 4, 0, 2))
+plot(x, y, type = "l", lwd = 2
+     , ylab = "Density f(X)", xlab = "X")
+# text(2.3, .38, "pdf of a normal", cex = 1.3)
+
+make.poly(-3, .3, col = "cornflowerblue")
+make.poly(-3, -1.2, col = adjustcolor("mediumorchid", .5))
+make.line(-1.2, lwd = 2, col = 1)
+make.line(.3, lwd = 2)
+lines(x, y, lwd = 2)
+text(-1.2, .4, "a", cex = 1.2)
+text(.4, .4, "b", cex = 1.2)
+```
+
+\[Pr(a < x \leq b) = F(b) - F(a)\]
+
+
+## Using CDF and pdf
+
+```{r, echo = F, fig.height=3, fig.width = 4.5, fig.align='center'}
+par(mar = c(4, 4, 0, 2))
+plot(x, y, type = "l", lwd = 2
+     , ylab = "Density f(X)", xlab = "X")
+# text(2.3, .38, "pdf of a normal", cex = 1.3)
+
+make.poly(-3, .3, col = "cornflowerblue")
+make.poly(-3, -1.2, col = adjustcolor("mediumorchid", .5))
+make.line(-1.2, lwd = 2, col = 1)
+make.line(.3, lwd = 2)
+lines(x, y, lwd = 2)
+text(-1.2, .4, "a", cex = 1.2)
+text(.4, .4, "b", cex = 1.2)
+```
+
+\[Pr(a < x \leq b) = F(b) - F(a)\]
+
+
+```{r}
+pnorm(.3, 0, 1) - pnorm(-1.2, 0, 1)
+```
+
+## Quantile Function
+
+The $p^{th}$ quantile of a distribution is the value $q_p$ such that $Pr(X \leq q_p) = p$.
+
+>- Reverse of the CDF
+
+## Quantile Function
+
+The $p^{th}$ quantile of a distribution is the value $q_p$ such that $Pr(X \leq q_p) = p$.
+
+**Reverse of the CDF**
+
+```{r, echo = F, fig.height=3, fig.width = 4.5, fig.align='center'}
+par(mar = c(4, 4, .2, 2))
+plot(x, y, type = "l", lwd = 2
+     , ylab = "Density f(X)", xlab = "X")
+# text(2.3, .38, "pdf of a normal", cex = 1.3)
+
+make.poly(-3, qnorm(.75), col = adjustcolor("mediumorchid", .5))
+make.line(qnorm(.75), lwd = 2, col = 1)
+lines(x, y, lwd = 2)
+text(-.5, .15, "p = .75", cex = 1.2)
+text(qnorm(.75), .38, "?", cex = 1.2)
+```
+
+## Quantile Function
+
+The $p^{th}$ quantile of a distribution is the value $q_p$ such that $Pr(X \leq q_p) = p$.
+
+```{r, echo = F, fig.height=3, fig.width = 4.5, fig.align='center'}
+par(mar = c(4, 4, .2, 2))
+plot(x, y, type = "l", lwd = 2
+     , ylab = "Density f(X)", xlab = "X")
+# text(2.3, .38, "pdf of a normal", cex = 1.3)
+
+make.poly(-3, qnorm(.75), col = adjustcolor("mediumorchid", .5))
+make.line(qnorm(.75), lwd = 2, col = 1)
+lines(x, y, lwd = 2)
+text(-.5, .15, "p = .75", cex = 1.2)
+text(qnorm(.75), .38, "?", cex = 1.2)
+```
+
+```{r}
+qnorm(.75, mean = 0, sd = 1)
+```
+
+## Sampling from a Continuous Random Variable
+
+For example $Y \sim \mbox{Normal}(0, 1)$
+
+## Sampling from a Continuous Random Variable
+
+For example $Y \sim \mbox{Normal}(0, 1)$
+
+```{r}
+rnorm(5, mean = 0, sd = 1)
+```
+
+## Trial & Error
+
+- Plot the density function of a $\mbox{Normal}(-10, 10)$. What is a reasonable "zoom" for the plot and how do you achieve it?
+- Draw a histogram (`hist()`) with 10000 realizations from a $\mbox{Normal}(-10, 10)$. How does it compare to the density function plot?
+- Find the median of a standard normal distribution $\mbox{Normal}(0, 1)$ using `dnorm()`, `pnorm()`, or `qnorm()`
+
+# Signal Detection Theory Model
+
+## SDT model for subliminal perception
+
+General idea: Perception strength varies gradually, but is on average higher when the stimulus is present compared to absent.
+
+```{r echo = F}
+x <- seq(-3, 5, .01)
+y.noise <- dnorm(x)
+y.signal <- dnorm(x, 1.5)
+
+plot(x, y.noise
+     , type = "l", lwd = 2
+     , xlim = range(x)
+     , frame.plot = F
+     , ylab = "Density"
+     , xlab = "Sensory Strength"
+     )
+lines(x, y.signal, col = "firebrick4", lwd = 2)
+# make.line(0)
+# make.line(1.5, 1.5)
+# abline(v = 1, lwd = 2, col = "darkgreen")
+# axis(3, at = c(0, 1.5), labels = c("", ""))
+# mtext("d'", 3, line = .5, at = .75, cex = 1.3)
+# text(1.2, .03, "c", cex = 1.3)
+text(-2, .25, "Stimulus absent")
+text(3.5, .25, "Stimulus present")
+```
+
+## SDT model for subliminal perception
+
+General idea: Perception strength varies gradually, but is on average higher when the stimulus is present compared to absent.
+
+```{r echo = F}
+x <- seq(-3, 5, .01)
+y.noise <- dnorm(x)
+y.signal <- dnorm(x, 1.5)
+
+plot(x, y.noise
+     , type = "l", lwd = 2
+     , xlim = range(x)
+     , frame.plot = F
+     , ylab = "Density"
+     , xlab = "Sensory Strength"
+     )
+lines(x, y.signal, col = "firebrick4", lwd = 2)
+# make.line(0)
+# make.line(1.5, 1.5)
+# abline(v = 1, lwd = 2, col = "darkgreen")
+axis(3, at = c(0, 1.5), labels = c("", ""))
+mtext("d'", 3, line = .5, at = .75, cex = 1.3)
+# text(1.2, .03, "c", cex = 1.3)
+text(-2, .25, "Stimulus absent")
+text(3.5, .25, "Stimulus present")
+```
+
+## SDT model for subliminal perception
+
+A criterion determines the response made.
+
+```{r echo = F}
+x <- seq(-3, 5, .01)
+y.noise <- dnorm(x)
+y.signal <- dnorm(x, 1.5)
+
+plot(x, y.noise
+     , type = "l", lwd = 2
+     , xlim = range(x)
+     , frame.plot = F
+     , ylab = "Density"
+     , xlab = "Sensory Strength"
+     )
+lines(x, y.signal, col = "firebrick4", lwd = 2)
+# make.line(0)
+# make.line(1.5, 1.5)
+abline(v = 1, lwd = 2, col = "darkgreen")
+axis(3, at = c(0, 1.5), labels = c("", ""))
+mtext("d'", 3, line = .5, at = .75, cex = 1.3)
+text(1.2, .03, "c", cex = 1.3)
+text(-2, .25, "Stimulus absent")
+text(3.5, .25, "Stimulus present")
+```
+
+## SDT model compared to HT model
+
+One parameter for perception ability, one for response bias
+
+>- $d'$ corresponds to $d$
+>- $c$ corresponds to $g$
+
+## SDT model predictions for H, M, F, C
+
+What corresponds to the probability of hit? Area under the curve!
+
+```{r echo = F}
+x <- seq(-3, 5, .01)
+y.noise <- dnorm(x)
+y.signal <- dnorm(x, 1.5)
+
+plot(x, y.noise
+     , type = "l", lwd = 2
+     , xlim = range(x)
+     , frame.plot = F
+     , ylab = "Density"
+     , xlab = "Sensory Strength"
+     )
+lines(x, y.signal, col = "firebrick4", lwd = 2)
+# make.line(0)
+# make.line(1.5, 1.5)
+abline(v = 1, lwd = 2, col = "darkgreen")
+# axis(3, at = c(0, 1.5), labels = c("", ""))
+# mtext("d'", 3, line = .5, at = .75, cex = 1.3)
+text(1.2, .03, "c", cex = 1.3)
+text(-2, .25, "Stimulus absent")
+text(3.5, .25, "Stimulus present")
+```
+
+## SDT model predictions for H, M, F, C
+
+What corresponds to the probability of hit? Area under the curve!
+
+```{r echo = F}
+x <- seq(-3, 5, .01)
+y.noise <- dnorm(x)
+y.signal <- dnorm(x, 1.5)
+
+plot(x, y.noise
+     , type = "l", lwd = 2
+     , xlim = range(x)
+     , frame.plot = F
+     , ylab = "Density"
+     , xlab = "Sensory Strength"
+     )
+lines(x, y.signal, col = "firebrick4", lwd = 2)
+# make.line(0)
+# make.line(1.5, 1.5)
+abline(v = 1, lwd = 2, col = "darkgreen")
+# axis(3, at = c(0, 1.5), labels = c("", ""))
+# mtext("d'", 3, line = .5, at = .75, cex = 1.3)
+text(1.2, .03, "c", cex = 1.3)
+text(-2, .25, "Stimulus absent")
+text(3.5, .25, "Stimulus present")
+make.poly(1, 5, mu = 1.5, col = adjustcolor("firebrick", .3))
+```
+
+## SDT model predictions for H, M, F, C
+
+What corresponds to the probability of miss?
+
+```{r echo = F}
+x <- seq(-3, 5, .01)
+y.noise <- dnorm(x)
+y.signal <- dnorm(x, 1.5)
+
+plot(x, y.noise
+     , type = "l", lwd = 2
+     , xlim = range(x)
+     , frame.plot = F
+     , ylab = "Density"
+     , xlab = "Sensory Strength"
+     )
+lines(x, y.signal, col = "firebrick4", lwd = 2)
+# make.line(0)
+# make.line(1.5, 1.5)
+abline(v = 1, lwd = 2, col = "darkgreen")
+# axis(3, at = c(0, 1.5), labels = c("", ""))
+# mtext("d'", 3, line = .5, at = .75, cex = 1.3)
+text(1.2, .03, "c", cex = 1.3)
+text(-2, .25, "Stimulus absent")
+text(3.5, .25, "Stimulus present")
+make.poly(-3, 1, mu = 1.5, col = adjustcolor("firebrick", .3))
+```
+
+## SDT model predictions for H, M, F, C
+
+What corresponds to the probability of false alarm?
+
+```{r echo = F}
+x <- seq(-3, 5, .01)
+y.noise <- dnorm(x)
+y.signal <- dnorm(x, 1.5)
+
+plot(x, y.noise
+     , type = "l", lwd = 2
+     , xlim = range(x)
+     , frame.plot = F
+     , ylab = "Density"
+     , xlab = "Sensory Strength"
+     )
+lines(x, y.signal, col = "firebrick4", lwd = 2)
+# make.line(0)
+# make.line(1.5, 1.5)
+abline(v = 1, lwd = 2, col = "darkgreen")
+# axis(3, at = c(0, 1.5), labels = c("", ""))
+# mtext("d'", 3, line = .5, at = .75, cex = 1.3)
+text(1.2, .03, "c", cex = 1.3)
+text(-2, .25, "Stimulus absent")
+text(3.5, .25, "Stimulus present")
+make.poly(1, 5, mu = 0, col = adjustcolor(1, .3))
+```
+
+## SDT model predictions for H, M, F, C
+
+What corresponds to the probability of correct rejection?
+
+```{r echo = F}
+x <- seq(-3, 5, .01)
+y.noise <- dnorm(x)
+y.signal <- dnorm(x, 1.5)
+
+plot(x, y.noise
+     , type = "l", lwd = 2
+     , xlim = range(x)
+     , frame.plot = F
+     , ylab = "Density"
+     , xlab = "Sensory Strength"
+     )
+lines(x, y.signal, col = "firebrick4", lwd = 2)
+# make.line(0)
+# make.line(1.5, 1.5)
+abline(v = 1, lwd = 2, col = "darkgreen")
+# axis(3, at = c(0, 1.5), labels = c("", ""))
+# mtext("d'", 3, line = .5, at = .75, cex = 1.3)
+text(1.2, .03, "c", cex = 1.3)
+text(-2, .25, "Stimulus absent")
+text(3.5, .25, "Stimulus present")
+make.poly(-3, 1, mu = 0, col = adjustcolor(1, .3))
+```
+
+## SDT model predictions for H, M, F, C {.build}
+
+Let the CDF of a standard normal be $\Phi(x)$. Then
+
+\[Pr(\mbox{correct rejection}) = \Phi(c)\]
+
+\[Pr(\mbox{false alarm}) = 1 - \Phi(c)\]
+
+Probability of a miss is the probability of a normal with mean $d'$ and variance $1$ to be less than $c$. Can be written as $\Phi(c - d')$.
+
+\[Pr(\mbox{miss}) = \Phi(c - d')\]
+
+\[Pr(\mbox{hit}) = 1 - \Phi(c - d') \]
+
+## SDT model in model form
+
+\[
+Y_h \sim \mbox{Binomial}( 1 - \Phi(c - d'), N_s),\\
+Y_f \sim \mbox{Binomial}( 1 - \Phi(c), N_n).
+\]
+
+## SDT in R
+
+```{r}
+#log likelihood for signal detection
+ll.sd <- function(par, y){       #par = c(d', c) y = c(hit, miss, fa, cr)
+p <- 1:4
+p[1] <- 1 - pnorm(par[2], par[1], 1)
+p[2] <- 1 - p[1]
+p[3] <- 1 - pnorm(par[2], 0, 1)
+p[4] <- 1 - p[3]
+-sum(y * log(p))
+}
+```
+
+## SDT in R
+
+```{r}
+#log likelihood for signal detection
+ll.sd <- function(par, y){       #par = c(d', c) y = c(hit, miss, fa, cr)
+p <- 1:4
+p[1] <- 1 - pnorm(par[2], par[1], 1)
+p[2] <- 1 - p[1]
+p[3] <- 1 - pnorm(par[2], 0, 1)
+p[4] <- 1 - p[3]
+-sum(y * log(p))
+}
+```
+
+```{r}
+y <- c(40, 10, 30, 20)
+par <- c(1, 0) #starting values
+out <- optim(par, ll.sd, y = y)
+out$par
+```
+
+## SDT for 2 Conditions
+
+12ms and 20ms presentation time
+
+```{r echo = F}
+x <- seq(-3, 6, .01)
+y.noise <- dnorm(x)
+y.signal <- dnorm(x, 1)
+y.signal2 <- dnorm(x, 2.5)
+
+plot(x, y.noise
+     , type = "l", lwd = 2
+     , xlim = range(x)
+     , frame.plot = F
+     , ylab = "Density"
+     , xlab = "Sensory Strength"
+     )
+lines(x, y.signal, col = "firebrick4", lwd = 2)
+lines(x, y.signal2, col = "darkblue", lwd = 2)
+# make.line(0)
+# make.line(1.5, 1.5)
+abline(v = .8, lwd = 2, col = "darkgreen")
+axis(3, at = c(0, 1, 2.5), labels = c("", "", ""))
+mtext(expression("d'"[1]), 3, line = .5, at = .5, cex = 1.3)
+mtext(expression("d'"[2]), 3, line = .5, at = 1.25, cex = 1.3)
+text(.9, .03, "c", cex = 1.3)
+text(-2, .25, "Stimulus absent")
+text(.2, .15, "Cond 1")
+text(3, .2, "Cond 2")
+```
+
+## SDT for 2 Conditions
+
+```{r}
+#par = c(d'1, d'2, c) y = c(hit1, miss1, fa1, cr1, hit2, miss2, fa2, cr2)
+nll.sdt <- function(par3, y8){            
+  ll.sd(par3[c(1, 3)], y8[1:4]) +     #condition 1
+    ll.sd(par3[2:3], y8[5:8])       #condition 2
+}
+
+### Data analysis
+dat <- c(22, 28, 22, 28   #h, m, f, c for condition 1
+         , 35, 15, 21, 29) #h, m, f, c for condition 2
+
+par.m <- c(1, 2, 1) #starting values
+out2  <- optim(par.m, nll.sdt, y8 = dat, hessian = T)
+```
+
+## Do we need two separate d'?
+
+Estimate a model with only one d' for both conditions.
+
+## Do we need two separate d'?
+
+Estimate a model with only one d' for both conditions.
+
+```{r}
+#par = c(d', c) y = c(hit1, miss1, fa1, cr1, hit2, miss2, fa2, cr2)
+nll.sdt.2 <- function(par2, y8){            
+  ll.sd(par2, y8[1:4]) +     #condition 1
+    ll.sd(par2, y8[5:8])       #condition 2
+}
+
+### Data analysis
+par.m <- c(1, .5) #starting values
+out3  <- optim(par.m, nll.sdt.2, y8 = dat, hessian = T)
+```
+
+## Do we need two separate d'? | Model Comparison
+
+```{r}
+#G2 between general and constrained model
+(G2 <- 2 * (out3$value - out2$value))
+
+#p-value
+1 - pchisq(G2, df = 1)
+```
+
+
+
+
