@@ -1,0 +1,12 @@
+Getting started
+-----------------
+
+- Go to https://github.com/jstbcs/CognitiveModelingWorkshop
+- Clone or Download Button
+- Download zip
+- Unzip into a directory called CognitiveModelingWorkshop (or whatever you want)
+- Open R/RStudio
+- Set working directory to CognitiveModelingWorkshop using setwd("location-of-folder-on-your-computer/CognitiveModelingWorkshop") (or whatever you unzipped into)
+- You're ready!
+
+
