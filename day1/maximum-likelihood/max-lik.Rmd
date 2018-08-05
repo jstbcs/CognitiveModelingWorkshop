@@ -3,8 +3,10 @@ title: "Maximum Likelihood in R"
 author: "Stephen Rhodes and Julia Haaf"
 output: 
   ioslides_presentation:
+    logo: ../intro-to-R/pictures/MUlogoRGB.png
     widescreen: true
 subtitle: Estimating parameters from data
+
 ---
 
 ```{r setup, include=FALSE}
@@ -16,7 +18,7 @@ knitr::opts_chunk$set(echo = FALSE)
 - Probability vs Likelihood
 - Examples with Binomial and Normal functions
 - Searching for Maximum Likelihood with R
-- Comparing models fit via maximum likelihood
+- Avoiding local maxima
 
 # Probability vs Likelihood
 
@@ -25,10 +27,11 @@ knitr::opts_chunk$set(echo = FALSE)
 - Imagine that you give someone a memory test containing 20 items
 - They can either get the item correct or incorrect
 - You want to figure out what is the probability that the person will get 12 items correct *assuming that they have a 70% chance of producing a correct answer*.
-- You need the Binomial probability function:
+- We can use a binomial model where $n = 20$ and $p = .7$
 
 $$
-p(k; n, p) = {n \choose k} p^k(1-p)^{n-k}
+K \sim \mbox{Binomial}(n, p)
+%p(k; n, p) = {n \choose k} p^k(1-p)^{n-k}
 $$
 
 ## Binomial Probability {.columns-2}
@@ -241,16 +244,61 @@ out$par
 
 ```
 
-## To do
+# Avoiding local maxima
 
-- More examples (e.g. linear regression?)
-- Model comparison via AIC and BIC?
-- Multiple starting values
-- Fitting to individuals vs the aggregate?
+## Avoiding local maxima
+
+- With many parameters (dimensions) there may be troughs in the likelihood function that are not the global maximum likelihood
+- These are called local maxima and optimizers can get stuck there (therefore, not providing the *maximum* likelihood estimates)
+
+## Try multiple starting values
+
+```{r}
+
+x = seq(from = 0, to = 10, by = .01)
+y = sin(x)*x
+plot(x, y, type="l", ylab='', xlab=bquote(theta), lwd=1.5)
+points(x = c(2, 4), y = y[x %in% c(4, 2)], type="b", pch=16, cex=1.5, col='red')
+
+text(x = 4, y = y[x %in% 4], labels = "start", adj=-.5)
+
+```
+
+## Try multiple starting values
+
+```{r}
+
+x = seq(from = 0, to = 10, by = .01)
+y = sin(x)*x
+plot(x, y, type="l", ylab='', xlab=bquote(theta), lwd=1.5)
+points(x = c(6, x[which(y==max(y))]), y = y[x %in% c(6, x[which(y==max(y))])], type="b", pch=16, cex=1.5, col='red')
+
+text(x = 6, y = y[x %in% 6], labels = "start", adj=-.5)
+
+```
+
+## Try different optimizers
+
+- There are lots of different optimization routines (see, e.g., `?optim`)
+- One approach is to pass the results of a first `optim` run to `nlm` then back to `optim`
+
+```{r, echo=T}
+theta = runif(n = 2, min = 1, max = 10)
+
+out = optim(par = theta, fn = ll_norm, y = Y)
+out2 = nlm(f = ll_norm, p = out$par, y = Y)
+out3 = optim(par = out2$estimate, fn = ll_norm, y = Y)
+
+# compare estimates
+cbind(out$par, out2$estimate, out3$par)
+
+```
 
 # Extra Slides
 
 ## Alternative likelihood function
+
+You can often avoid using `for` loops in `R`. Below we have rewritten the `ll_norm` function, replacing the loop with `mapply` (see `?mapply`).
 
 ```{r, echo=T}
 ll_norm = function(theta, y){

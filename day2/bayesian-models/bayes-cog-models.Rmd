@@ -3,7 +3,7 @@ title: "Bayesian Estimation of Cognitive Models"
 author: "Stephen Rhodes and Julia Haaf"
 output: 
   ioslides_presentation:
-    logo: ../../Intro to R/pictures/MUlogoRGB.png
+    logo: ../../day1/intro-to-R/pictures/MUlogoRGB.png
     widescreen: true
 subtitle: Modeling the individual and group
 ---
@@ -17,17 +17,18 @@ knitr::opts_chunk$set(echo = FALSE)
 We're going to work through some example models
 
 - Change detection data (from yesterday)
+- Delayed estimation recall error
 - SDT model of confidence rating data
-- Analysis of recall error
 
-These examples use binomial (accuracy), ordinal, and (near) continuous data, respectively.
+These examples use binomial (accuracy), continuous, and ordinal data, respectively.
 
+# Change Detection
+
+## Rouder et al. (2008)
 
 # SDT confidence ratings
 
 ```{r}
-
-
 ratingModel <- function(d, s, a, b, C, lastPoint = T){
   # the parsimonius model from Selker et al
   # https://osf.io/v3b76/
@@ -46,14 +47,10 @@ ratingModel <- function(d, s, a, b, C, lastPoint = T){
   return(cbind(f, h))
 }
 
-# par(pty='s')
-# plot(ratingModel(d = 2, s = 1, a = 1, b = 0, C = 1000), ylim=c(0,1), xlim=c(0,1), type='l')
-# points(ratingModel(d = 2, s = 1, a = 1, b = 0, C = 6), ylim=c(0,1), xlim=c(0,1))
-
-
 plotSDT <- function(d = 2, s = 1, a = 1, b = 0, C = 6, title = F){
-  par(pty='m', mar=c(3,2,3,2))
+  par(pty='m', mar=c(4,2,3,2))
   
+  xrange <- c(-3, d+3*s)
   newcol = col2rgb("dodgerblue4")[,1]
   newcol = rgb(red = newcol[1], green = newcol[2], blue = newcol[3], alpha = 50, maxColorValue = 255)
   oldcol=rgb(1,1,1,.5)
@@ -63,7 +60,6 @@ plotSDT <- function(d = 2, s = 1, a = 1, b = 0, C = 6, title = F){
   thresh = 1/2 + a*unb + b
   thresh = thresh[1:(C-1)]
   
-  xrange = c(-3, d+3*s)
   yrange = c(0, max(dnorm(0), dnorm(d, d, s)))
   plot(NA, ylim = yrange*c(0,1.5), xlim = xrange, ylab="", xlab="", axes=F)
   
@@ -71,9 +67,6 @@ plotSDT <- function(d = 2, s = 1, a = 1, b = 0, C = 6, title = F){
   curve(expr = dnorm(x, 0, 1), from=xrange[1], to=xrange[2], n = 10000, add = T)
   polygon(c(xrange[1], xseq, xrange[2]), c(0, dnorm(xseq, d, s), 0), col = oldcol , border = NA)
   curve(expr = dnorm(x, d, s), from=xrange[1], to=xrange[2], n = 10000, add = T)
-  
-  #text(x = 0, y = dnorm(0)+diff(yrange)*.1, labels = bquote(mu["new"]))
-  #text(x = d, y = dnorm(d, d, s)+diff(yrange)*.1, labels = bquote(mu["old"]))
   
   for (k in 1:(C-1)){
     lines(x = c(thresh[k], thresh[k]), y = yrange*c(0, 1.35), lty=2, col='darkgrey')
@@ -89,40 +82,125 @@ plotSDT <- function(d = 2, s = 1, a = 1, b = 0, C = 6, title = F){
   if (title){
     mtext(text = paste0("d = ", d, ", s = ", s, ", a = ", a, ", b = ", b))
   }
+  mtext(text = "Strength of Evidence for 'old'", 1, line = 2.5)
 }
 
-
-par(pty='s')
-plot(ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 1000), ylim=c(0,1), xlim=c(0,1), type='l', xlab='false-alarm rate', ylab='hit rate')
-a = ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 6, lastPoint=F)
-points(a, ylim=c(0,1), xlim=c(0,1), pch=21, bg='grey')
-
-text(t(t(a)+c(.05,-.05)), labels = 5:1)
-
-
-par(mfrow=c(1,2))
-
-plotSDT(d = 2, s = 1.2, a = 1, b = -2/3, C = 6)
-mtext("Shift to the left (more liberal)")
-
-plotSDT(d = 2, s = 1.2, a = 1, b = 1, C = 6)
-mtext("Shift to the right (more conservative)")
-
-
-par(pty='s', mfrow=c(1,2))
-
-plot(ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 1000), ylim=c(0,1), xlim=c(0,1), type='l', xlab='false-alarm rate', ylab='hit rate')
-a = ratingModel(d = 2, s = 1.2, a = 1, b = -2/3, C = 6, lastPoint=F)
-points(a, ylim=c(0,1), xlim=c(0,1), pch=21, bg='grey')
-
-mtext("Shift to the left (more liberal)")
-
-plot(ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 1000), ylim=c(0,1), xlim=c(0,1), type='l', xlab='false-alarm rate', ylab='hit rate')
-a = ratingModel(d = 2, s = 1.2, a = 1, b = 1, C = 6, lastPoint=F)
-points(a, ylim=c(0,1), xlim=c(0,1), pch=21, bg='grey')
-mtext("Shift to the right (more conservative)")
+# par(pty='s')
+# plot(ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 1000), ylim=c(0,1), xlim=c(0,1), type='l', xlab='false-alarm rate', ylab='hit rate')
+# a = ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 6, lastPoint=F)
+# points(a, ylim=c(0,1), xlim=c(0,1), pch=21, bg='grey')
+# 
+# text(t(t(a)+c(.05,-.05)), labels = 5:1)
+#
+# par(mfrow=c(1,2))
+# 
+# plotSDT(d = 2, s = 1.2, a = 1, b = -2/3, C = 6)
+# mtext("Shift to the left (more liberal)")
+# 
+# plotSDT(d = 2, s = 1.2, a = 1, b = 1, C = 6)
+# mtext("Shift to the right (more conservative)")
+# 
+# par(pty='s', mfrow=c(1,2))
+# 
+# plot(ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 1000), ylim=c(0,1), xlim=c(0,1), type='l', xlab='false-alarm rate', ylab='hit rate')
+# a = ratingModel(d = 2, s = 1.2, a = 1, b = -2/3, C = 6, lastPoint=F)
+# points(a, ylim=c(0,1), xlim=c(0,1), pch=21, bg='grey')
+# 
+# mtext("Shift to the left (more liberal)")
+# 
+# plot(ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 1000), ylim=c(0,1), xlim=c(0,1), type='l', xlab='false-alarm rate', ylab='hit rate')
+# a = ratingModel(d = 2, s = 1.2, a = 1, b = 1, C = 6, lastPoint=F)
+# points(a, ylim=c(0,1), xlim=c(0,1), pch=21, bg='grey')
+# mtext("Shift to the right (more conservative)")
 
 ```
 
+## Example paradigm (Pratte et al., 2010, JEPLMC)
 
+- Participants study 240 sequentially presented words
+- At test they see 480 words (1/2 old/studied, 1/2 new)
+- Instead of an old/new judgement, participants give an ordinal response:
+- 1 = *sure new*, 2 = *believe new*, 3 = *guess new*, 4 = *guess old*, 5 = *believe old*, 6 = *sure old*.
+
+## Why?
+
+- To separate sensitivity from bias we need to know the ROC curve
+- With an old/new decision we only get one point (left)
+- Multiple ratings allow us to approximate ROC curves (right)
+
+```{r, fig.height=4}
+par(pty='s', mfrow=c(1,2), mar=c(3,4,1,1))
+plot(NA, ylim=c(0,1), xlim=c(0,1), type='l', xlab='false-alarm rate', ylab='hit rate', main="Old/New")
+a = ratingModel(d = 2, s = 1.2, a = 1, b = 0, C = 6, lastPoint=F)
+points(a[3,1], a[3,2], ylim=c(0,1), xlim=c(0,1), pch=21, bg='grey', cex=1.5)
+
+plot(NA, ylim=c(0,1), xlim=c(0,1), type='l', xlab='false-alarm rate', ylab='hit rate', main="Rating 1-6")
+points(a, ylim=c(0,1), xlim=c(0,1), pch=21, bg='grey', cex=1.5)
+```
+
+## Signal detection model
+
+For the old/new task the signal detection theory model is:
+
+```{r}
+plotSDT(d = 2, s = 1.2, a = 1, b = 1, C = 2)
+```
+
+## Signal detection model
+
+For the rating task the signal detection theory model is:
+
+```{r}
+plotSDT(d = 2, s = 1.2, a = 1, b = .3, C = 6)
+```
+
+## Signal detection model
+<div class="columns-2">
+
+- The participant is assumed to set up $K - 1$ thresholds (where $K$ is the number of rating categories).
+- $p(\mbox{rating} = k \mid \mbox{new}) = \Phi(-\lambda_k) - \Phi(-\lambda_{k - 1})$ ($\Phi$ = `pnorm`)
+- $p(\mbox{rating} = k \mid \mbox{old}) = \Phi\left(\frac{d - \lambda_k}{s}\right) - \Phi\left(\frac{d - \lambda_{k - 1}}{s}\right)$
+- $\lambda_0 = -\infty$, $\lambda_K = -\infty$
+- $d$ = sensitivity, $s$ = SD of the old distribution
+
+</br>
+</br>
+</br>
+</br>
+
+```{r, fig.width=4, fig.height=5, fig.align='right'}
+plotSDT(d = 2, s = 1.2, a = 1, b = .3, C = 6)
+```
+
+</div>
+
+## Signal detection model
+
+- If the thresholds are freely estimated the number of parameters to be estimated increases as the number of rating options increases.
+- [Selker et al. (pre-print)](https://osf.io/b6z8e/) present a way of modeling thresholds with two parameters
+    - Start with unbiased thresholds ($\gamma_k$)
+    - Scale and shift them with two parameters: $\lambda_k = 1/2 + a\gamma_k + b$
+    - Scale = $a$, Shift = $b$
+
+## Selker et al. signal detection model
+
+Scale
+
+```{r}
+par(mfrow=c(1,2))
+plotSDT(d = 2, s = 1.2, a = 1, b = .3, C = 6, title = T)
+
+plotSDT(d = 2, s = 1.2, a = 1.5, b = .3, C = 6, title = T)
+```
+
+## Selker et al. signal detection model
+
+Shift
+
+```{r}
+par(mfrow=c(1,2))
+plotSDT(d = 2, s = 1.2, a = 1, b = 0, C = 6, title = T)
+
+plotSDT(d = 2, s = 1.2, a = 1, b = 1.5, C = 6, title = T)
+```
 

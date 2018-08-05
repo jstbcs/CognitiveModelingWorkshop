@@ -3,7 +3,7 @@ title: "Introduction to Bayesian Estimation and JAGS"
 author: "Stephen Rhodes and Julia Haaf"
 output: 
   ioslides_presentation:
-    logo: ../../Intro to R/pictures/MUlogoRGB.png
+    logo: ../../day1/intro-to-R/pictures/MUlogoRGB.png
     widescreen: true
 ---
 

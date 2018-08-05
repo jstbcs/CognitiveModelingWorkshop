@@ -1,7 +1,7 @@
 
 # MLE Rouder et al (2008) PNAS
 
-cd = read.table(file = "data/rouder08-data-0.5.dat")
+cd = read.table(file = "day1/change-detection/data/rouder08-data-0.5.dat")
 
 group_data = apply(cd, 2, sum)
 
@@ -69,6 +69,19 @@ ll.fixed_k <- function(par, y){
   return(ll)
 }
 
+ll.vary_k <- function(par, y){
+  # length(par) == 5 (k*3, a, g)
+  ll=0
+  for(i in 1:length(N)){ # for each set size
+    p = cowan_k(k = par[i], a = par[4], g = par[5], N = N[i])
+    ll = ll + negLL(y[N_i==i], p)
+  }
+  if(any(c(par < rep(0,5), par > c(rep(max(N), 3),1,1)))){
+    ll = ll + 10000 # penalty for going out of range
+  }
+  return(ll)
+}
+
 ll.sdt.ev <- function(par, y){
   # length(par) == 4 (d1, d2, d3, c)
   ll=0
@@ -90,6 +103,13 @@ k_res$value
 
 k_res$par
 
+# starting values
+par = runif(n = 5, min = 0, max = c(rep(max(N),3), 1, 1))
+vary_k_res = optim(par, ll.vary_k, y = group_data)
+vary_k_res$value
+
+vary_k_res$par
+
 ## fit sdt model
 par = runif(n = 4, min = 0, max = c(5, 5, 5, 5))
 sdt_res = optim(par, ll.sdt.ev, y = group_data)
@@ -97,28 +117,11 @@ sdt_res$value
 
 sdt_res$par
 
-# examine fit statistics
-fit_stats <- function(nLL, n, p){
-  # nLL = negative log liklihood
-  # n = number of observations
-  # p = number of parameters
-  
-  deviance = 2*nLL
-  aic = deviance + 2*p
-  bic = deviance + p*log(n)
-  
-  return(list("D" = deviance, "AIC" = aic, "BIC" = bic))
-}
+#### TASKS -----
 
-sdt_fit = fit_stats(nLL = sdt_res$value, n = sum(group_data), p = 4)
-
-k_fit = fit_stats(nLL = k_res$value, n = sum(group_data), p = 3)
-
-sdt_fit$AIC
-k_fit$AIC
-
-sdt_fit$BIC
-k_fit$BIC
+# try making and fitting the following models:
+#   - unequal variance signal detection
+#   - a fixed capacity model with no attention parameter (i.e. a = 1)
 
 
 
