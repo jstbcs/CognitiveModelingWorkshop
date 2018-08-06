@@ -239,6 +239,8 @@ teachers$ratio <- teachers$pets / teachers$friends
 teachers
 ```
 
+## Trial & Error 3
+
 **Calculate the average age for happy-face income and sad-face income.**
 
 ```{r}
@@ -270,9 +272,12 @@ y <- rnorm(50, 12, 4)
 dat.fun <- data.frame(sub = 1:50, x, y)
 
 write.csv(dat.fun, "data/example_fun.csv", row.names = F)
+```
 
+```{r}
 head(dat.fun)
 ```
+
 
 ## Analysis of this boring data set
 
@@ -291,7 +296,12 @@ It shows several related functions. `read.csv` has several *arguments*, most of 
 
 Minimal usage: Submit the filename to `read.csv`.
 
-```{r}
+```{r eval = F}
+example.dat <- read.csv(file = "day1/intro-to-R/data/example_fun.csv")
+head(example.dat)
+```
+
+```{r echo = F}
 example.dat <- read.csv(file = "data/example_fun.csv")
 head(example.dat)
 ```
@@ -300,7 +310,7 @@ head(example.dat)
 
 **Use `help()` to navigate the `t-test` function. What arguments to you need to submit to the function? What are the results?**
 
-## Trial & Error 4: t-test {.build}
+## Trial & Error 4: t-test {.build .smaller}
 
 **Use `help()` to navigate the `t-test` function. What arguments to you need to submit to the function? What are the results?**
 
@@ -343,7 +353,7 @@ dat.pretty$ischange <- factor(dat.pretty$ischange, labels = c("unchanged", "chan
 head(dat.pretty)
 ```
 
-## Analyse it
+## Analyze it
 
 ```{r}
 mean.acc <- with(dat.pretty, tapply(accuracy, list(prch, N, ischange), mean))
@@ -360,6 +370,25 @@ axis(1, at = 1:3, labels = rownames(mean.acc))
 matplot(mean.acc[,,2], main = "Changed", ylab = "Accuracy"
         , type = "b", pch = colnames(mean.acc), xaxt = "n")
 axis(1, at = 1:3, labels = rownames(mean.acc))
+```
+
+## Plot it {.smaller}
+
+```{r}
+mean.acc[,,1]
+```
+
+```{r eval = F}
+matplot(mean.acc[,,1] # data
+        , main = "Unchanged", ylab = "Accuracy" #labels: title and y-axis
+        , type = "b", pch = colnames(mean.acc)) #type = "both" line and point, point type = set size
+```
+
+```{r, fig.width=4.5, fig.height=3.1, echo = F, fig.align='center'}
+par(mar = c(3.5, 4, 1.5, 2))
+matplot(mean.acc[,,1] # data
+        , main = "Unchanged", ylab = "Accuracy" #labels: title and y-axis
+        , type = "b", pch = colnames(mean.acc)) #type = "both" line and point, point type = set size
 ```
 
 ## Counting
@@ -389,7 +418,19 @@ tab
               , "fa" = tab[2, 1], "cr" = tab[1, 1]))
 ```
 
+## Plot counts
 
+```{r}
+barplot(outcomes)
+```
+
+## Plot counts
+
+Go crazy on the [colors!](http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf)
+
+```{r}
+barplot(outcomes, col = "mediumvioletred")
+```
 
 #Programming in R
 
@@ -426,6 +467,19 @@ gimme.sum <- function(x, y){
 gimme.sum(99, 567)
 ```
 
+##Write your own function | Calculator
+
+Goal: A function that takes two numbers as arguments and returns the sum of them.
+
+```{r}
+gimme.sum <- function(x, y){
+  sum.xy <- x + y
+  return(sum.xy)
+}
+
+gimme.sum(c(1, 2, 5, 7), 567)
+```
+
 ##Write your own function | Your turn!
 
 Goal: A function that takes two vectors of numbers, x and y, and returns a vector with length of x with $\frac{x}{sd_y}$.
@@ -439,5 +493,20 @@ what <- function(x, y){
   sdy <- sd(y)
   return(x/sdy)
 }
+```
+
+##Write your own function | Your turn!
+
+Goal: A function that takes two vectors of numbers, x and y, and returns a vector with length of x with $\frac{x}{sd_y}$.
+
+```{r}
+what <- function(x, y){
+  sdy <- sd(y)
+  return(x/sdy)
+}
+
+what(c(1, 2, 3), c(1, 4, 7))
+
+what(1:3, c(1, 1, 1))
 ```
 
