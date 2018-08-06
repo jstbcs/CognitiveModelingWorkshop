@@ -61,7 +61,7 @@ ll.vacuous <- function(y){
 ll.fixed_k <- function(par, y){
   # length(par) == 3 (k, a, g)
   ll = 0
-  for(i in 1:length(N)){ # for each set size
+  for (i in 1:length(N)){ # for each set size
     p = cowan_k(k = par[1], a = par[2], g = par[3], N = N[i])
     ll = ll + negLL(y[N_i==i], p)
   }
@@ -97,7 +97,7 @@ ll.sdt.ev <- function(par, y){
 }
 
 # get LL from vacuous model 
-ll.vacuous(y = group_data)
+ll.vac = ll.vacuous(y = group_data)
 
 ## fit k model
 # starting values
@@ -126,9 +126,58 @@ sdt_res$par
 # try making and fitting the following models:
 #   - unequal variance signal detection
 #   - a fixed capacity model with no attention parameter (i.e. a = 1)
+#   - compare the fixed and variable capacity (k) models via G^2
+
+
+
+### SCROLL DOWN TO SEE SOLUTIONS ----
 
 
 
 
 
+
+
+# unequal variance signal detection
+ll.sdt.uev <- function(par, y){
+  # length(par) == 5 (d1, d2, d3, c, s)
+  ll=0
+  for(i in 1:length(N)){ # for each set size
+    p = sdt(d = par[i], c = par[4], s = par[5])
+    ll = ll + negLL(y[N_i==i], p)
+  }
+  return(ll)
+}
+
+par = runif(n = 5, min = 0, max = c(5, 5, 5, 5, 2))
+sdtuv_res = optim(par, ll.sdt.uev, y = group_data)
+sdtuv_res$value
+
+sdtuv_res$par
+
+# a fixed capacity model with no attention parameter (i.e. a = 1)
+ll.fixed_k_noA <- function(par, y){
+  # length(par) == 2 (k, g)
+  ll = 0
+  for (i in 1:length(N)){ # for each set size
+    p = cowan_k(k = par[1], a = 1, g = par[2], N = N[i])
+    ll = ll + negLL(y[N_i==i], p)
+  }
+  if(any(c(par < rep(0,2), par > c(max(N),1)))){
+    ll = ll + 10000 # penalty for going out of range
+  }
+  return(ll)
+}
+
+par = runif(n = 2, min = 0, max = c(max(N), 1))
+par = c(1, .5)
+k_noA_res = optim(par, ll.fixed_k_noA, y = group_data)
+k_noA_res$value
+
+k_noA_res$par
+
+# compare the fixed and variable capacity (k) models via G^2
+G = 2*(k_res$value - vary_k_res$value)
+
+1 - pchisq(G, df = 2)
 

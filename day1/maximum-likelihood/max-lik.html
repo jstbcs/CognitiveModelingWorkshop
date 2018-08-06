@@ -338,6 +338,17 @@ cbind(out$par, out2$estimate, out3$par)</pre>
   sigma = theta[2]
   ll = sum(mapply(y, FUN = function(x) dnorm(x = x, mean = mu, sd = sigma, log = T)))
   return(-ll)
+}</pre>
+
+</article></slide><slide class=""><hgroup><h2>Alternative likelihood function</h2></hgroup><article  id="alternative-likelihood-function-1">
+
+<p>Even easier! <code>rnorm</code> returns a vector</p>
+
+<pre class = 'prettyprint lang-r'>ll_norm = function(theta, y){
+  mu = theta[1]
+  sigma = theta[2]
+  ll = sum(dnorm(x = y, mean = mu, sd = sigma, log = T))
+  return(-ll)
 }</pre></article></slide>
 
 
