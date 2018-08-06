@@ -662,6 +662,37 @@ model {
 
 ```
 
+## Posterior Predictive Checks
+
+- Simulate data based on the posterior distribution and compare to the data
+- We're looking for systematic differences between the model and data, which may suggest areas for improvement
+
+```{r, echo=T, eval=F}
+genNewObs <- function(m, s, sigma){
+  # this function takes the hyperparameters from the above model
+  # and generates new observations
+  m_n = rnorm(length(m), m, s) # samples means from population distribution
+  
+  y_rep = rnorm(length(m), m_n, sigma) # generate new "data"
+  
+  return(y_rep)
+}
+```
+
+## Posterior Predictive Checks
+
+```{r, echo=F}
+y = rnorm(300, mean = 700, sd = 140)
+
+pp_samples = rnorm(10000, mean = 700, sd = 140)
+
+par(mfrow=c(1,2))
+hist(pp_samples, main="Posterior Predictive Samples", probability = T, xlab="y", breaks=30, col="lightblue")
+
+hist(y, xlim=range(pp_samples), main="Data", xlab='y', col="lightgreen", breaks=20)
+
+```
+
 ## Hierarchical example - rjags
 
 `rjags-basic-hier.R` simulates some data and demonstrates this model.

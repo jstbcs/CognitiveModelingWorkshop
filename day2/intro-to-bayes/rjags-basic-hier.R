@@ -108,3 +108,21 @@ plot(x = xbars$y, y = post_m, xlab=bquote(bar(y)[i]), ylab="Estimated (95% CI)",
 segments(x0 = xbars$y, y0 = post_cis[1,], x1 = xbars$y, y1 = post_cis[2,]) # error bars
 abline(0,1, lty=2, col="grey") # line of 1:1 correspondence
 
+## Posterior predictive check
+
+genNewObs <- function(m, s, sigma){
+  # this function takes the hyperparameters from the above model
+  # and generates new observations
+  m_n = rnorm(length(m), m, s) # samples means from population distribution
+  
+  y_rep = rnorm(length(m), m_n, sigma) # generate new "data"
+  
+  return(y_rep)
+}
+
+pp_samples = genNewObs(samples_matrix[,'m'], samples_matrix[,'s'], samples_matrix[,'sigma'])
+
+par(mfrow=c(1,2))
+hist(pp_samples, main="Posterior Predictive Samples", probability = T, xlab="y", breaks=30, col="lightblue")
+
+hist(hier_data$y, xlim=range(pp_samples), main="Data", xlab='y', col="lightgreen")

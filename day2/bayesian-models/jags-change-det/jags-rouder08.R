@@ -81,7 +81,6 @@ k_samples = coda.samples(model = k_jags, variable.names = params, n.iter = 1000)
 
 summary(k_samples)
 
-
 # a version of the model with a different k parameter for each set size
 
 # to fit this we need to add some extra stuff to the data list
@@ -151,3 +150,74 @@ gelman.diag(vary_k_samples)
 
 plot(vary_k_samples[,"K_mu[1]"])
 # the mean for set size = 2 has not converged - why do you think this is?
+
+# re-fitting with more samples helps...
+vary_k_samples = coda.samples(model = vary_k_jags, variable.names = params, n.iter = 10000)
+gelman.diag(vary_k_samples)
+
+# but this model probably should be reparameterized. If you're interested in how this could be done, please ask one of us
+
+### Comparing these models with DIC ----
+
+# DIC is like AIC and BIC but for hierarchical models https://en.wikipedia.org/wiki/Deviance_information_criterion
+# it essentially penalizes the model for the 'effective' number of parameters it has (how this is estimated is tricky. You can't just could the number of paramaters in a hierarchical model)
+
+# we can get it via the dic.samples function
+DIC_k_jags = dic.samples(model = k_jags, n.iter = 1000, type = "pD")
+DIC_vary_k_jags = dic.samples(model = vary_k_jags, n.iter = 1000, type = "pD")
+
+DIC_k_jags
+DIC_vary_k_jags
+
+diffdic(DIC_k_jags, DIC_vary_k_jags)
+
+# DIC is smaller for the fixed k version
+
+### Posterior predictive samples ----
+
+# we need to extract the samples to a matrix and then create a function to 
+# turn the parameters into new data
+k_samples_mat = as.matrix(k_samples)
+
+k_ppsamples = function(mat, N){
+  # takes the posterior samples and produces posterior predictive samples for 
+  # a particular set size
+  
+  # sample new ks from the population distribution
+  kappa = rnorm(nrow(mat), mean = mat[,'K_mu'], sd = mat[,'K_sigma'])
+  k = ifelse(kappa > 0, kappa, 0) # this is the same as k = max(kappa, 0)
+  
+  d = k/N
+  d = ifelse(d > 1, 1, d) # this is the same as d = min(k/N, 1)
+  
+  # sample new a and gs from their population distributions
+  logita = rnorm(nrow(mat), mean = mat[,'A_mu'], sd = mat[,'A_sigma'])
+  a = plogis(logita) # transform this parameter to its natural scale [0,1]
+  
+  logitg = rnorm(nrow(mat), mean = mat[,'G_mu'], sd = mat[,'G_sigma'])
+  g = plogis(logita)
+  
+  h_rep = a*(d + (1-d)*g) + (1 - a)*g
+  f_rep = a*(1 - d)*g + (1 - a)*g
+  
+  return(cbind(f = f_rep, h = h_rep))
+}
+
+# these are the posterior predictive false-alarm and hit rates for different set sizes
+pp_samples_N2 = k_ppsamples(mat = k_samples_mat, N = 2)
+pp_samples_N5 = k_ppsamples(mat = k_samples_mat, N = 5)
+pp_samples_N8 = k_ppsamples(mat = k_samples_mat, N = 8)
+
+# let's look at quantiles
+apply(pp_samples_N2, 2, FUN = quantile, prob=c(.025, .975))
+apply(pp_samples_N5, 2, FUN = quantile, prob=c(.025, .975))
+apply(pp_samples_N8, 2, FUN = quantile, prob=c(.025, .975))
+
+### HARD task ----
+
+## try ploting the data and the posterior predictive samples
+
+# observed hit and false alarm rates can be found by 
+cd$rate = with(cd, respchange/ntrials)
+
+
