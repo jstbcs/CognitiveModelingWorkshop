@@ -13,7 +13,7 @@ N_i = rep(1:length(N), each=4) # index
 
 #Multinomial Negative Log-Likelihood
 negLL <- function(y,p){
-  a=ifelse(y==0 & p==0,0, y*log(p))
+  a = suppressWarnings(ifelse(y==0 & p==0 | p < 0, 0, y*log(p)))
   -sum(a)
 }
 
@@ -45,20 +45,22 @@ sdt <- function(d, c, s){
 
 # Likelihood functions
 
+## Binomial Model
 ll.vacuous <- function(y){
-  ll=0
+  ll = 0
   lenY = length(y)
-  y1=y[(1:lenY)%%2==1]
-  y2=y[(1:lenY)%%2==0]
-  n=(rep((y1+y2),each=2))
-  p=y/n
+  y1 = y[rep(c(T, F), lenY/2)]
+  y2 = y[rep(c(F, T), lenY/2)]
+  n = (rep((y1+y2), each=2))
+  p = y/n
   ll = negLL(y, p)
   return(ll)
 }
 
+## Fixed Capacity Model
 ll.fixed_k <- function(par, y){
   # length(par) == 3 (k, a, g)
-  ll=0
+  ll = 0
   for(i in 1:length(N)){ # for each set size
     p = cowan_k(k = par[1], a = par[2], g = par[3], N = N[i])
     ll = ll + negLL(y[N_i==i], p)
@@ -69,6 +71,7 @@ ll.fixed_k <- function(par, y){
   return(ll)
 }
 
+## Varying Capacity Model
 ll.vary_k <- function(par, y){
   # length(par) == 5 (k*3, a, g)
   ll=0
@@ -82,6 +85,7 @@ ll.vary_k <- function(par, y){
   return(ll)
 }
 
+## Equal-Variance Signal Detection Model
 ll.sdt.ev <- function(par, y){
   # length(par) == 4 (d1, d2, d3, c)
   ll=0
@@ -122,6 +126,9 @@ sdt_res$par
 # try making and fitting the following models:
 #   - unequal variance signal detection
 #   - a fixed capacity model with no attention parameter (i.e. a = 1)
+
+
+
 
 
 

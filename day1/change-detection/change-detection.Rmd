@@ -17,7 +17,11 @@ knitr::opts_chunk$set(echo = FALSE)
 
 [Rouder et al. (2008)](http://www.pnas.org/content/105/16/5975)
 
-![](pictures/SP.pdf)
+</br>
+
+![](pictures/SP.png)
+
+</br>
 
 </br>
 
@@ -33,10 +37,10 @@ knitr::opts_chunk$set(echo = FALSE)
 - Cowan (2001) suggested a way of estimating the number of items in working memory, $k$, using the change detection task
 - $d = \min(k/N, 1)$ = probability that the probed item is in memory
 - If the probed item is in memory the participant responds correctly. If it isn't, they must guess:
-    - $p(\mbox{resp} = \mbox{change} \mid \mbox{change}) = h =  d + (1 - d)g$
-    - $p(\mbox{resp} = \mbox{no-change} \mid \mbox{change}) = f = (1 - d)g$
+    - $p(\mbox{resp} = \mbox{change} \mid \mbox{change}) = p_h =  d + (1 - d)g$
+    - $p(\mbox{resp} = \mbox{no-change} \mid \mbox{change}) = p_f = (1 - d)g$
 - This gives a formula for $k$:
-    - $h = k/N + f \rightarrow k = N(h - f)$
+    - $p_h = k/N + p_f \rightarrow k = N(p_h - p_f)$
 
 ## Change Detection
 
@@ -48,15 +52,15 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## The extension for 'lapsing'
 
-$$
-p(\mbox{resp} = \mbox{change} \mid \mbox{change}) = h =  a(d + (1 - d)g) + (1 - a)g
-$$
-
-$$
-p(\mbox{resp} = \mbox{no-change} \mid \mbox{change}) = f = a(1 - d)g + (1 - a)g
-$$
-
 If people lapse, they guess
+
+$$
+p(\mbox{resp} = \mbox{change} \mid \mbox{change}) = p_h =  a(d + (1 - d)g) + (1 - a)g
+$$
+
+$$
+p(\mbox{resp} = \mbox{no-change} \mid \mbox{change}) = p_f = a(1 - d)g + (1 - a)g
+$$
 
 ## Result
 
@@ -91,24 +95,24 @@ legend("topleft", legend = c(2,5,8), lty = 1, col = c("dodgerblue", "forestgreen
 
 We need three elements
 
-- A function to generate the predictions from the models given some parameter settings
-- A function to calculate the likelihood of the parameters given the data
-- A function that combines the above two into a specific version of the model (e.g. one that restricts certain parameters)
+- A `function()` to generate the predictions from the models given some parameter settings
+- A `function()` to calculate the likelihood of the parameters given the data
+- A `function()` that combines the above two into a specific version of the model (e.g. one that restricts certain parameters)
 
 ## Implementing these models in R
 
 We need to write this function with an understanding of what form the data are in. 
 
-The data are given with one participant per row with numbers of *hits*, *misses*, *false-alarms*, and *correct rejections* (order is important) for each set size.
+The data are given with one participant per row with numbers of *hits*, *misses*, *false alarms*, and *correct rejections* (order is important) for each set size.
 
-*Note* were only look at the data from the 50% change condition to simplify things.
+*Note* we only look at the data from the 50% change condition to simplify things.
 
 ```{r, echo=T}
 cd = read.table(file = "data/rouder08-data-0.5.dat")
 head(cd, n = 1)
 ```
 
-## Prediction functions
+## Prediction functions | Fixed capacity model
 
 With that in mind we make our prediction functions return in the same order
 
@@ -125,7 +129,7 @@ cowan_k <- function(k, a, g, N){
 }
 ```
 
-## Prediction functions
+## Prediction functions | Signal detection model
 
 With that in mind we make our prediction functions return in the same order
 
@@ -153,9 +157,7 @@ negLL <- function(y,p){
 # this seems to work better than dmultinom 
 ```
 
-## Model functions
-
-**Fixed capacity model**
+## Model functions | Fixed capacity model
 
 ```{r, echo = T}
 N = c(2,5,8)
@@ -176,9 +178,7 @@ ll.fixed_k <- function(par, y){
 }
 ```
 
-## Model functions
-
-**Variable capacity model**
+## Model functions | Variable capacity model
 
 ```{r, echo = T}
 N = c(2,5,8)
@@ -199,9 +199,7 @@ ll.vary_k <- function(par, y){
 }
 ```
 
-## Model functions
-
-**Equal-variance signal detection model**
+## Model functions | Equal-variance signal detection model
 
 ```{r, echo = T}
 N = c(2,5,8)
