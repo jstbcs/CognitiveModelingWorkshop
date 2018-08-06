@@ -179,7 +179,7 @@ diffdic(DIC_k_jags, DIC_vary_k_jags)
 # turn the parameters into new data
 k_samples_mat = as.matrix(k_samples)
 
-k_ppsamples = function(mat, N){
+k_ppsamples = function(mat, N, trials = 30){
   # takes the posterior samples and produces posterior predictive samples for 
   # a particular set size
   
@@ -197,8 +197,12 @@ k_ppsamples = function(mat, N){
   logitg = rnorm(nrow(mat), mean = mat[,'G_mu'], sd = mat[,'G_sigma'])
   g = plogis(logita)
   
-  h_rep = a*(d + (1-d)*g) + (1 - a)*g
-  f_rep = a*(1 - d)*g + (1 - a)*g
+  h = a*(d + (1-d)*g) + (1 - a)*g
+  f = a*(1 - d)*g + (1 - a)*g
+  
+  # simulate new data from a binomial
+  h_rep = rbinom(n = length(h), size = trials, prob = h)/trials
+  f_rep = rbinom(n = length(f), size = trials, prob = f)/trials
   
   return(cbind(f = f_rep, h = h_rep))
 }
