@@ -1,0 +1,23 @@
+
+model{
+  for (i in 1:n){
+    y[i] ~ dvonmises(mu, kappa[i])
+    
+    kappa[i] <- (1/sd[i]^2)
+    
+    sd[i] <- exp(SD_s[id[i], N_i[i]])
+  }
+  for (s in 1:S){
+    for (ss in 1:N_n){
+      SD_s[s, ss] ~ dnorm(SD_mu[ss], 1/SD_sigma^2)
+    }
+  }
+  for (ss in 1:N_n){
+    SD_mu[ss] ~ dnorm(2, 1/10^2)
+  }
+  
+  SD_sigma ~ dgamma(shape, rate)
+  
+  shape <- 1.01005 
+  rate <- 0.1005012
+}

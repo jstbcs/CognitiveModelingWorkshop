@@ -1,0 +1,33 @@
+
+model{
+  for (i in 1:n){
+    y[i] ~ dvonmises(mu, kappa[i])
+    
+    kappa[i] <- (1/sd[i]^2)*z[i]
+    
+    z[i] ~ dbern(pm[i]) # 1 = response from memory, 0 = guess
+    
+    pm[i] <- min(k[i]/N[i], 1)
+    k[i] <- max(kap[i], 0)
+    kap[i] <- K_s[id[i]]
+
+    sd[i] <- exp(SD_s[id[i], N_i[i]])
+  }
+  for (s in 1:S){
+    K_s[s] ~ dnorm(K_mu, 1/K_sigma^2)
+    for (ss in 1:N_n){
+      SD_s[s, ss] ~ dnorm(SD_mu[ss], 1/SD_sigma^2)
+    }
+  }
+  
+  K_mu ~ dnorm(3, 1/4^2)
+  for (ss in 1:N_n){
+    SD_mu[ss] ~ dnorm(2, 1/10^2)
+  }
+  
+  SD_sigma ~ dgamma(shape, rate)
+  K_sigma ~ dgamma(shape, rate)
+  
+  shape <- 1.01005 
+  rate <- 0.1005012
+}

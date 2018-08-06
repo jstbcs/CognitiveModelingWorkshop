@@ -168,7 +168,7 @@ p(\mbox{resp} = \mbox{change} \mid \mbox{change}) = h =  a(d + (1 - d)g) + (1 - 
 \]</p>
 
 <p>\[
-p(\mbox{resp} = \mbox{no-change} \mid \mbox{change}) = f = a(1 - d)g + (1 - a)g
+p(\mbox{resp} = \mbox{change} \mid \mbox{no-change}) = f = a(1 - d)g + (1 - a)g
 \]</p>
 
 <p>If people lapse, they guess</p>
@@ -313,7 +313,13 @@ ll.sdt.ev &lt;- function(par, y){
     ll = ll + negLL(y[N_i==i], p)
   }
   return(ll)
-}</pre></article></slide>
+}</pre>
+
+</article></slide><slide class=""><hgroup><h2>Scripts</h2></hgroup><article  id="scripts">
+
+<p><code>mle-rouder08-group.R</code> fits these models to aggregate data</p>
+
+<p><code>mle-rouder08-indiv.R</code> fits these models to aggregate data</p></article></slide>
 
 
   <slide class="backdrop"></slide>

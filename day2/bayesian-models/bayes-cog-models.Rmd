@@ -24,7 +24,204 @@ These examples use binomial (accuracy), continuous, and ordinal data, respective
 
 # Change Detection
 
+## Rouder et al. (2008) data
+
+The data is structured differently from the MLE example
+
+```{r, echo=T}
+cd = read.table(file = "jags-change-det/rouder08-longdata-0.5.dat")
+head(cd)
+# ischange = was the trial a change trial? 1 = yes, 0 = no
+# respchange = the number of trials that the participant said 'change' to
+# ntrials = number of trials of that type for that participant in that condition
+```
+
 ## Rouder et al. (2008)
+
+- See `jags-rouder08.R`
+- Reminder of the model:
+
+$$
+p(\mbox{resp} = \mbox{change} \mid \mbox{change}) = h =  a(d + (1 - d)g) + (1 - a)g
+$$
+
+$$
+p(\mbox{resp} = \mbox{change} \mid \mbox{no-change}) = f = a(1 - d)g + (1 - a)g
+$$
+
+## In JAGS
+
+```{r, eval=F, echo=T}
+      # p(resp = change)
+      P[i] <- ifelse(ischange[i] == 1, 
+                     a[i]*(d[i]+(1-d[i])*g[i]) + (1-a[i])*g[i], # p(hit)
+                     a[i]*(1-d[i])*g[i] + (1-a[i])*g[i]) # p(false-alarm)
+```
+
+## Rouder et al. (2008) hierarchical model
+
+Parameters for participant $i$ are drawn from independant normals
+
+$\kappa_i \sim \mbox{Normal}(\mu_\kappa, \sigma_\kappa)$
+
+$k_i = \max(\kappa_i, 0)$ (see [Morey, 2011](http://isiarticles.com/bundles/Article/pre/pdf/71624.pdf))
+
+$\mbox{logit}(a_i) \sim \mbox{Normal}(\mu_a, \sigma_a)$
+
+$\mbox{logit}(g_i) \sim \mbox{Normal}(\mu_g, \sigma_g)$
+
+## logit
+
+$\mbox{logit}(p) = \ln(p/(1-p))$
+
+Maps probabilities onto real numbers (so we can sample participant parameters from normal distributions)
+
+```{r, fig.height=4}
+curve(qlogis(x), from=0, to=1, main="", xlab="p", ylab="logit(p)")
+```
+
+## In JAGS
+
+```{r, eval=F, echo=T}
+k[i] <- max(kappa[i], 0) # 'Mass-at-chance' transformation
+kappa[i] <- K_s[id[i]]
+logit(a[i]) <- A_s[id[i]] # logit transformation
+logit(g[i]) <- G_s[id[i]]
+```
+
+```{r, eval=F, echo=T}
+for (s in 1:S){
+  K_s[s] ~ dnorm(K_mu, 1/K_sigma^2)
+  A_s[s] ~ dnorm(A_mu, 1/A_sigma^2)
+  G_s[s] ~ dnorm(G_mu, 1/G_sigma^2)
+}
+```
+
+## Priors
+
+$\mu_\kappa \sim \mbox{Normal}(3, 4)$
+
+$\mu_a \sim \mbox{Normal}(2.2, 4)$ (`plogis(2.2)` $\approx$ 0.9)
+
+$\mu_g \sim \mbox{Normal}(0, 4)$ (`plogis(0)` = 0.5)
+
+```{r, eval=F, echo=T}
+K_mu ~ dnorm(3, 1/4^2) 
+A_mu ~ dnorm(2.2, 1/4^2) 
+G_mu ~ dnorm(0, 1/4^2) 
+```
+
+## Priors
+
+$\sigma_\kappa \sim \mbox{Gamma}(s, r)$
+
+$\sigma_a \sim \mbox{Gamma}(s, r)$
+
+$\sigma_g \sim \mbox{Gamma}(s, r)$
+
+```{r, eval=F, echo=TRUE}
+K_sigma ~ dgamma(shape, rate)
+A_sigma ~ dgamma(shape, rate)
+G_sigma ~ dgamma(shape, rate)
+
+shape <- 1.01005
+rate <- 0.1005012
+```
+
+## Priors
+
+```{r}
+curve(dgamma(x, shape = 1.01005, rate = 0.1005012), from=0, to=20, n = 10000, ylab="", xlab=bquote(sigma), lwd=2)
+```
+
+# Delayed Estimation
+
+## Delayed Estimation
+
+- Study items that vary on a continuous (usually circular dimension)
+- Reproduce a probed item
+
+## Zhang and Luck (2008)
+
+- Another example using colored squares!
+
+```{r, out.width = "200px", echo=F}
+knitr::include_graphics("pictures/zhang-luck.png")
+```
+
+## Zhang and Luck (2008) - data
+
+```{r, echo=T}
+de = read.table("delayed-estimation/zhang-luck08.dat")
+
+head(de)
+```
+
+## Zhang and Luck (2008) - data
+
+```{r, echo=F}
+colors = rainbow(4, alpha = .5)
+par(mfrow = c(2,2), mar=c(3,3,2,2))
+Ns = unique(de$setsize)
+Ns = Ns[order(Ns)]
+
+for (i in 1:4){
+  N = Ns[i]
+  with(subset(de, setsize==N), hist(error, main=paste0("N = ", N), xlab="error (rad)", ylab="", col=colors[i], breaks=30))
+}
+
+```
+
+## Zhang and Luck (2008) - models
+
+Responses are a *mixture* of memory responses and random guesses
+
+$p(y = x) = P_{m}\mbox{vonMises}(x; \sigma) + (1 - P_m)\frac{1}{2\pi}$
+
+```{r, fig.height=4, echo=F, messages=F, warning=F}
+library(circular, quietly = T, warn.conflicts = F)
+de_mixture <- function(y, sd, pmem, mu=0, log=T){
+  # delayed estimation mixture
+  dvon = suppressWarnings(dvonmises(circular(y), mu = mu, kappa = 1/sd^2)) # suppresses messages about converting data to the circular class 
+  p <- pmem*dvon + (1-pmem)*(1/(2*pi))
+  if (log){
+    return(log(p))
+  }else{
+    return(p)
+  }
+}
+
+curve(de_mixture(x, sd = .5, pmem = .8, log=F), from=-pi, to=pi, ylim=c(0,.8), ylab='', xlab="Error (radians)", lwd=2)
+
+curve(de_mixture(x, sd = .5, pmem = .5, log=F), from=-pi, to=pi, ylim=c(0,.8), lwd=2, add = T, col="dodgerblue")
+
+legend('topleft', legend = c(.8, .5), lwd=2, col=c("black", 'dodgerblue'), bty='n', title="Pm")
+
+```
+
+## Zhang and Luck (2008) - models
+
+They also fit a simpler version of the model where all responses are from memory and only the standard deviation of the von Mises (circular normal) distribution varies with set size.
+
+```{r, fig.height=4, echo=F, messages=F, warning=F}
+
+curve(de_mixture(x, sd = .5, pmem = 1, log=F), from=-pi, to=pi, ylim=c(0,.8), ylab='', xlab="Error (radians)", lwd=2)
+
+curve(de_mixture(x, sd = 1, pmem = 1, log=F), from=-pi, to=pi, ylim=c(0,.8), lwd=2, add = T, col="dodgerblue")
+
+legend('topleft', legend = c(.5, 1), lwd=2, col=c("black", 'dodgerblue'), bty='n', title="SD")
+
+```
+
+## In JAGS
+
+## 
+
+For both change detection and (especially) delayed estimation many more complicated models have been proposed. 
+
+See, for example, [van den Berg et al. (2014)](http://www.cns.nyu.edu/malab/static/files/publications/2014%20Van%20den%20Berg%20Ma%20Psych%20Review.pdf)
+
+These models provide the foundations for the more complex versions.
 
 # SDT confidence ratings
 
@@ -43,7 +240,6 @@ ratingModel <- function(d, s, a, b, C, lastPoint = T){
     f = f[1:(C-1)]
     h = h[1:(C-1)]
   }
-  
   return(cbind(f, h))
 }
 

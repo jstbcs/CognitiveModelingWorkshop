@@ -53,7 +53,7 @@ p(\mbox{resp} = \mbox{change} \mid \mbox{change}) = h =  a(d + (1 - d)g) + (1 - 
 $$
 
 $$
-p(\mbox{resp} = \mbox{no-change} \mid \mbox{change}) = f = a(1 - d)g + (1 - a)g
+p(\mbox{resp} = \mbox{change} \mid \mbox{no-change}) = f = a(1 - d)g + (1 - a)g
 $$
 
 If people lapse, they guess
@@ -218,3 +218,12 @@ ll.sdt.ev <- function(par, y){
   return(ll)
 }
 ```
+
+## Scripts
+
+`mle-rouder08-group.R` fits these models to aggregate data
+
+`mle-rouder08-indiv.R` fits these models to aggregate data
+
+
+

@@ -1,0 +1,30 @@
+
+model{
+  for (i in 1:n){
+    y[i] ~ dvonmises(mu, kappa[i])
+    
+    kappa[i] <- (1/sd[i]^2)*z[i]
+    
+    z[i] ~ dbern(pm[i]) # 1 = response from memory, 0 = guess
+    # see Oberauer (2016, JoV) https://www.ncbi.nlm.nih.gov/pubmed/28538991
+    
+    logit(pm[i]) <- Pm_s[id[i], N_i[i]]
+    sd[i] <- exp(SD_s[id[i], N_i[i]])
+  }
+  for (s in 1:S){
+    for (ss in 1:N_n){
+      Pm_s[s, ss] ~ dnorm(Pm_mu[ss], 1/Pm_sigma^2)
+      SD_s[s, ss] ~ dnorm(SD_mu[ss], 1/SD_sigma^2)
+    }
+  }
+  for (ss in 1:N_n){
+    Pm_mu[ss] ~ dnorm(0, 1/4^2)
+    SD_mu[ss] ~ dnorm(2, 1/10^2)
+  }
+  
+  SD_sigma ~ dgamma(shape, rate)
+  Pm_sigma ~ dgamma(shape, rate)
+  
+  shape <- 1.01005 
+  rate <- 0.1005012
+}
