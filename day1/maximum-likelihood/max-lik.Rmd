@@ -308,3 +308,16 @@ ll_norm = function(theta, y){
   return(-ll)
 }
 ```
+
+## Alternative likelihood function
+
+Even easier! `rnorm` returns a vector
+
+```{r, echo=T}
+ll_norm = function(theta, y){
+  mu = theta[1]
+  sigma = theta[2]
+  ll = sum(dnorm(x = y, mean = mu, sd = sigma, log = T))
+  return(-ll)
+}
+```
