@@ -166,11 +166,11 @@ rm(list = c("tmp.dat", "k_res_s", "vary_k_res_s", "sdt_res_s"))
 ## Good To Know
 
 - Advanced models
-  - General high-threshold model
-  - Unequal-variance signal detection model
+    - General high-threshold model
+    - Unequal-variance signal detection model
 - Model comparison with "unrelated" models
-  - AIC
-  - BIC
+    - AIC
+    - BIC
 - Problems & Fixes: Null counts
 
 # Advanced Models
@@ -345,10 +345,10 @@ Downside:
 >- Often preferred in frequentist model comparison
 >- Interpretation difficult
 
-## Unequal Variance Signal Detection Model (UVSD) {.smaller}
+## Unequal Variance Signal Detection Model (UVSD)
 
 ```{r}
-## Equal-Variance Signal Detection Model
+## Unequal-Variance Signal Detection Model
 ll.sdt.uv <- function(par, y){
   # length(par) == 7 (d1, d2, d3, c, s1, s2, s3)
   ll=0
@@ -365,12 +365,12 @@ ll.sdt.uv <- function(par, y){
 ## Unequal Variance Signal Detection Model (UVSD) {.smaller}
 
 ```{r}
-## fit sdt model
+## fit uvsd model
 par = runif(n = 7, min = .1, max = 3)
 sdt_res_uv = optim(par, ll.sdt.uv, y = group_data)
 sdt_res_uv$par
 
-## fit sdt model
+## fit evsd model
 par = runif(n = 4, min = .1, max = 3)
 sdt_res = optim(par, ll.sdt.ev, y = group_data)
 sdt_res$par
@@ -401,6 +401,8 @@ where $p$ is the number of parameters and $- 2 \log(L)$ is two times the negativ
 \[BIC = - 2 \log(L) +  p \log(n),\]
 
 where $n$ is the number of observations.
+
+*Q:* Do you want higher or lower values of AIC/BIC?
 
 ## AIC and BIC in R
 

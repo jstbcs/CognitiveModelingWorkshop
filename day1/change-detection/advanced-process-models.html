@@ -116,12 +116,18 @@
 <slide class=""><hgroup><h2>Good To Know</h2></hgroup><article  id="good-to-know">
 
 <ul>
-<li>Advanced models</li>
+<li>Advanced models
+
+<ul>
 <li>General high-threshold model</li>
 <li>Unequal-variance signal detection model</li>
-<li>Model comparison with &quot;unrelated&quot; models</li>
+</ul></li>
+<li>Model comparison with &quot;unrelated&quot; models
+
+<ul>
 <li>AIC</li>
 <li>BIC</li>
+</ul></li>
 <li>Problems &amp; Fixes: Null counts</li>
 </ul>
 
@@ -164,7 +170,7 @@ ll.vary_k &lt;- function(par, y){
 parameter.estimates</pre>
 
 <pre >##        k2        k5        k8         a         g 
-## 2.3761579 7.6313804 4.1205280 0.7378826 0.6412766</pre>
+## 2.8622687 7.2591656 4.1207409 0.7379111 0.6412371</pre>
 
 </article></slide><slide class=""><hgroup><h2>Unequal Variance Signal Detection Model (UVSD)</h2></hgroup><article  id="unequal-variance-signal-detection-model-uvsd">
 
@@ -190,9 +196,9 @@ parameter.estimates</pre>
 <li>Interpretation difficult</li>
 </ul>
 
-</article></slide><slide class=""><hgroup><h2>Unequal Variance Signal Detection Model (UVSD)</h2></hgroup><article  id="unequal-variance-signal-detection-model-uvsd-3" class="smaller">
+</article></slide><slide class=""><hgroup><h2>Unequal Variance Signal Detection Model (UVSD)</h2></hgroup><article  id="unequal-variance-signal-detection-model-uvsd-3">
 
-<pre class = 'prettyprint lang-r'>## Equal-Variance Signal Detection Model
+<pre class = 'prettyprint lang-r'>## Unequal-Variance Signal Detection Model
 ll.sdt.uv &lt;- function(par, y){
   # length(par) == 7 (d1, d2, d3, c, s1, s2, s3)
   ll=0
@@ -207,19 +213,19 @@ ll.sdt.uv &lt;- function(par, y){
 
 </article></slide><slide class=""><hgroup><h2>Unequal Variance Signal Detection Model (UVSD)</h2></hgroup><article  id="unequal-variance-signal-detection-model-uvsd-4" class="smaller">
 
-<pre class = 'prettyprint lang-r'>## fit sdt model
+<pre class = 'prettyprint lang-r'>## fit uvsd model
 par = runif(n = 7, min = .1, max = 3)
 sdt_res_uv = optim(par, ll.sdt.uv, y = group_data)
 sdt_res_uv$par</pre>
 
-<pre >## [1] 3.0426119 2.1699409 2.1046482 0.6886511 1.2971176 1.3747936 1.9451760</pre>
+<pre >## [1] 1.3443677 2.9204704 0.9506075 0.6888061 0.3612327 2.0704380 0.3594712</pre>
 
-<pre class = 'prettyprint lang-r'>## fit sdt model
+<pre class = 'prettyprint lang-r'>## fit evsd model
 par = runif(n = 4, min = .1, max = 3)
 sdt_res = optim(par, ll.sdt.ev, y = group_data)
 sdt_res$par</pre>
 
-<pre >## [1] 2.5026207 1.7662983 1.4162965 0.6884793</pre>
+<pre >## [1] 2.5037678 1.7666796 1.4167898 0.6887779</pre>
 
 <pre class = 'prettyprint lang-r'>c(sdt_res_uv$value, sdt_res$value)</pre>
 
@@ -251,6 +257,8 @@ sdt_res$par</pre>
 
 <p>where \(n\) is the number of observations.</p>
 
+<p><em>Q:</em> Do you want higher or lower values of AIC/BIC?</p>
+
 </article></slide><slide class=""><hgroup><h2>AIC and BIC in R</h2></hgroup><article  id="aic-and-bic-in-r">
 
 <pre class = 'prettyprint lang-r'># function to calculate fit statistics from -LL
@@ -274,11 +282,11 @@ vary_k_fit = fit_stats(nLL = vary_k_res$value, n = sum(group_data), p = 5)
 
 c(sdt_fit$AIC, k_fit$AIC, vary_k_fit$AIC)</pre>
 
-<pre >## [1] 3832.783 3608.646 3777.624</pre>
+<pre >## [1] 3832.784 3608.646 3612.189</pre>
 
 <pre class = 'prettyprint lang-r'>c(sdt_fit$BIC, k_fit$BIC, vary_k_fit$BIC)</pre>
 
-<pre >## [1] 3858.096 3627.631 3809.265</pre>
+<pre >## [1] 3858.096 3627.631 3643.830</pre>
 
 </article></slide><slide class=""><hgroup><h2>AIC and BIC in R</h2></hgroup><article  id="aic-and-bic-in-r-2">
 
@@ -288,11 +296,11 @@ vary_k_fit = fit_stats(nLL = vary_k_res$value, n = sum(group_data), p = 5)
 
 c(sdt_fit$AIC, k_fit$AIC, vary_k_fit$AIC)</pre>
 
-<pre >## [1] 3832.783 3608.646 3777.624</pre>
+<pre >## [1] 3832.784 3608.646 3612.189</pre>
 
 <pre class = 'prettyprint lang-r'>c(sdt_fit$BIC, k_fit$BIC, vary_k_fit$BIC)</pre>
 
-<pre >## [1] 3858.096 3627.631 3809.265</pre>
+<pre >## [1] 3858.096 3627.631 3643.830</pre>
 
 <p>Remember: The lower the better</p>
 
