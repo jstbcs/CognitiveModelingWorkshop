@@ -38,6 +38,8 @@ staff
 
 staff[2]
 staff[c(1, 3)]
+staff <- staff[c(1, 3)]
+staff[2:3]
 
 #Matrix
 m <- matrix(c(1:9), nrow = 3)
@@ -71,6 +73,8 @@ y <- rnorm(50, 12, 4)
 dat.fun <- data.frame(sub = 1:50, x, y)
 
 write.csv(dat.fun, "day1/intro-to-R/data/example_fun.csv", row.names = F)
+
+example.dat <- read.csv(file = "day1/intro-to-R/data/example_fun.csv")
 
 head(dat.fun)
 
@@ -130,3 +134,12 @@ gimme.sum <- function(x, y){
 }
 
 gimme.sum(99, 567)
+
+## New function
+new.f <- function(x, y){
+  sdy <- sd(y)
+  val <- x/sdy
+  return(val)
+}
+
+new.f(1:3, c(1, 1, 1))
