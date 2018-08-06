@@ -60,7 +60,7 @@ $$
 
 ## Rouder et al. (2008) hierarchical model
 
-Parameters for participant $i$ are drawn from independant normals
+Parameters for participant $i$ are drawn from independent normals
 
 $\kappa_i \sim \mbox{Normal}(\mu_\kappa, \sigma_\kappa)$
 
@@ -214,6 +214,52 @@ legend('topleft', legend = c(.5, 1), lwd=2, col=c("black", 'dodgerblue'), bty='n
 ```
 
 ## In JAGS
+
+See [Oberauer et al. (2016)](https://www.ncbi.nlm.nih.gov/pubmed/28538991)
+
+```{r, eval=F, echo=T}
+
+for (i in 1:n){
+  y[i] ~ dvonmises(mu, kappa[i])
+  
+  kappa[i] <- (1/sd[i]^2)*z[i] # kappa = 0 produces a uniform distribution
+  
+  z[i] ~ dbern(pm[i]) # 1 = response from memory, 0 = guess
+  
+  pm[i] <- min(k[i]/N[i], 1)
+  k[i] <- max(kap[i], 0)
+  kap[i] <- K_s[id[i]]
+  sd[i] <- exp(SD_s[id[i], N_i[i]])
+}
+```
+
+## In JAGS
+
+```{r, eval=F, echo=T}
+for (s in 1:S){
+  K_s[s] ~ dnorm(K_mu, 1/K_sigma^2)
+  for (ss in 1:N_n){
+    SD_s[s, ss] ~ dnorm(SD_mu[ss], 1/SD_sigma^2)
+  }
+}
+
+K_mu ~ dnorm(3, 1/4^2)
+for (ss in 1:N_n){
+  SD_mu[ss] ~ dnorm(2, 1/10^2)
+}
+
+SD_sigma ~ dgamma(shape, rate)
+K_sigma ~ dgamma(shape, rate)
+
+shape <- 1.01005 
+rate <- 0.1005012
+```
+
+## In JAGS
+
+`jags-zhang-luck08.R` runs hierarchical models on this data set. However, you need to install an extension for JAGS to get the von Mises distribution. Those interested can follow the links in the script to get the module.
+
+`mle-zhang-luck08.R` contains functions for MLE. Those interested can also use these to model this data set
 
 ## 
 
@@ -399,4 +445,109 @@ plotSDT(d = 2, s = 1.2, a = 1, b = 0, C = 6, title = T)
 
 plotSDT(d = 2, s = 1.2, a = 1, b = 1.5, C = 6, title = T)
 ```
+
+## Model
+
+$d_i \sim \mbox{Normal}(d_\mu, 1)$
+
+$s_i \sim \mbox{Normal}(s_\mu, 1)$
+
+$a_i \sim \mbox{Normal}(a_\mu, 1)$
+
+$b_i \sim \mbox{Normal}(b_\mu, 1)$
+
+In JAGS (see `HierSDT_model.txt`)
+
+```{r, eval=F, echo=T}
+mu[k] ~ dnorm(muMu,1) #
+sigma[k] ~ dnorm(sigmaMu, 1)  # unequal-variance (s)
+lambda[k] <- 1/(sigma[k]^2) # 1/s^2
+```
+
+## Model
+
+Hyperparameters
+
+$d_\mu \sim \mbox{Normal}^+(1, 1)$
+
+$s_\mu \sim \mbox{Normal}(1.1, 1)\mbox{I}(1,5)$
+
+$a_\mu \sim \mbox{Normal}^+(1, 1)$
+
+$a_\mu \sim \mbox{Normal}(0, 1)$
+
+In JAGS (see `HierSDT_model.txt`)
+
+```{r, eval=F, echo=T}
+muMu ~ dnorm(1,1) I(0,)
+sigmaMu ~ dnorm(1.1,1) I(1,5)	
+aMu ~ dnorm(1,1) I(0,)
+bMu ~ dnorm(0,1)
+```
+
+## Model
+
+This code sets the thresholds ($\lambda_k$)
+
+```{r, eval=F, echo=T}
+# Set unbiased thresholds on the [0,1] line and the real line [-∞,∞]
+for (c in 1:(nCat-1)) {
+	gam[c] <- c/nCat
+	gamReal[c] <- -log((1-gam[c])/gam[c])
+}
+
+
+# Use regression function to estimate thresholds on real line
+for (c in 1:(nCat-1)) {
+	dReal[k, c] <- a[k] * gamReal[c] + b[k] + .5
+}
+
+# in the code k refers to participants and c to ratings...
+```
+
+## Data
+
+Before talking more about the data it's useful to introduce the structure of the data, which comes from [Pratte et al. (2010)](http://pcn.psychology.msstate.edu/Publications/Pratte_etal_JEPLMC_2010.pdf)
+
+```{r, echo=T}
+
+load("confidence-rating/pratte10.RData")
+
+str(pratte10_list)
+
+```
+
+## Model
+
+New trials
+
+```{r, eval=F, echo=T}
+for (i in 1:nNoise[k]) { # for noise items
+	pNoise[k,i,1] <- pnorm(dReal[k,1], 0, 1) # gets area under first threshold
+	for (c in 2:(nCat-1)) { # gets area between thresholds 2:(nCat-1)
+		pNoise[k,i,c] <- pnorm(dReal[k,c], 0, 1) - sum(pNoise[k,i,1:(c-1)])
+	}
+	pNoise[k,i,nCat] <- 1 - sum(pNoise[k,i,1:(nCat-1)]) # gets area for the last threshold
+	xNoise[k,i] ~ dcat(pNoise[k,i,1:nCat]) # likelihood
+}
+```
+
+## Model
+
+Old trials
+
+```{r, eval=F, echo=T}
+for (j in 1:nSignal[k]) {	# for signal items
+	pSignal[k,j,1] <- pnorm(dReal[k,1], mu[k], lambda[k]) # gets area under first threshold
+	for (c in 2:(nCat-1)) { # gets area between thresholds 2:(nCat-1)
+		pSignal[k,j,c] <- pnorm(dReal[k,c], mu[k], lambda[k]) - sum(pSignal[k,j,1:(c-1)])
+	}
+	pSignal[k,j,nCat] <- 1 - sum(pSignal[k,j,1:(nCat-1)]) # gets area for the last
+	xSignal[k,j] ~ dcat(pSignal[k,j,1:nCat]) # likelihood	
+}
+```
+
+## 
+
+To work with this example go to the `fit-selker-model.R` script
 
