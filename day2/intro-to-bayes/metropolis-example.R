@@ -61,13 +61,13 @@ posterior_quantities <- function(y, prior_mean, prior_sd, known_sd = 15){
 }
 
 
-#### MODIFY FROM HERE ----
+#### START HERE ----
 
 N = 50 # number of observations in the group
 mu_real = 110 # the 'true' mean
 
 set.seed(123)
-Y = rnorm(N, mu_real, 15) # data
+Y = rnorm(N, mu_real, 15) # simulate data
 prior_m = 100
 prior_sd = 10
 
@@ -90,7 +90,53 @@ hist(samples, xlab = bquote(mu), main = paste0("N samples = ", length(samples)),
 post = posterior_quantities(y = Y, prior_mean = prior_m, prior_sd = prior_sd)
 curve(dnorm(x, mean = post[1], sd = post[2]), from = min(samples), to = max(samples), col = "red", lwd = 2, add = T)
 
-post[1]
-mean(samples)
-post[2]
-sd(samples)
+# run more samples to better approximate the posterior
+
+more_samples = metropolis_iq(y = Y, 
+                        prior_mean = prior_m, 
+                        prior_sd = prior_sd,
+                        proposal_sd = 5, 
+                        n_samples = 10000, # instead of 1000
+                        start = 100)
+
+plot(more_samples, xlab = "Step", ylab = bquote(mu), type="l", col="blue")
+
+# plot the histogram
+hist(more_samples, xlab = bquote(mu), main = paste0("N samples = ", length(more_samples)), col = "grey", breaks = 30, probability = T)
+curve(dnorm(x, mean = post[1], sd = post[2]), from = min(samples), to = max(samples), col = "red", lwd = 2, add = T)
+
+# an example showing the need for burn in or warm up
+
+burn_samples = metropolis_iq(y = Y, 
+                             prior_mean = prior_m, 
+                             prior_sd = prior_sd,
+                             proposal_sd = 5, 
+                             n_samples = 2000,
+                             start = 10)
+
+# the starting value can influence the first steps of the chain
+plot(burn_samples, xlab = "Step", ylab = bquote(mu), type="l", col="blue", main="before burn in")
+
+# so was can disgard some samples as a burn in period
+plot(x = 1001:2000, burn_samples[1001:2000], xlab = "Step", ylab = bquote(mu), type="l", col="blue", main = "after burn in")
+
+# an example of a chain with bad autocorrelation
+
+autocor_samples = metropolis_iq(y = Y, 
+                             prior_mean = prior_m, 
+                             prior_sd = prior_sd,
+                             proposal_sd = .25, # this means that each step in the chain will be smaller. Leading to more autocorrelation
+                             n_samples = 10000,
+                             start = 100)
+
+plot(autocor_samples, xlab = "Step", ylab = bquote(mu), type="l", col="blue", main="before thinning")
+
+K = 10 # what level of thinning should we use? We'll keep every K^th sample
+thin_samples = autocor_samples[seq(0, 10000, by = K)]
+
+plot(thin_samples, xlab = "Step", ylab = bquote(mu), type="l", col="blue", main="after thinning")
+
+coda::autocorr.plot(coda::as.mcmc(autocor_samples, main="before thinning"))
+
+coda::autocorr.plot(coda::as.mcmc(thin_samples, main="after thinning"))
+

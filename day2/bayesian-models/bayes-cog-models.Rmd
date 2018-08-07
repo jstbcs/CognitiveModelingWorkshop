@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 We're going to work through some example models
 
-- Change detection data (from yesterday)
+- **Change detection data (from yesterday)**
 - Delayed estimation recall error
 - SDT model of confidence rating data
 
@@ -76,7 +76,10 @@ $\mbox{logit}(p) = \ln(p/(1-p))$
 
 Maps probabilities onto real numbers (so we can sample participant parameters from normal distributions)
 
-```{r, fig.height=4}
+In R `qlogis(x)`. In JAGS `logit(x)`
+
+```{r, fig.height=3}
+par(mar=c(4,4,1,1))
 curve(qlogis(x), from=0, to=1, main="", xlab="p", ylab="logit(p)")
 ```
 
@@ -133,6 +136,8 @@ rate <- 0.1005012
 ```{r}
 curve(dgamma(x, shape = 1.01005, rate = 0.1005012), from=0, to=20, n = 10000, ylab="", xlab=bquote(sigma), lwd=2)
 ```
+
+It is more intuitive to work with priors on SD, but it can lead to better estimation to use inverse gamma priors on variance or a gamma prior on precision
 
 # Delayed Estimation
 
@@ -550,4 +555,16 @@ for (j in 1:nSignal[k]) {	# for signal items
 ## 
 
 To work with this example go to the `fit-selker-model.R` script
+
+## End
+
+This has been a whirlwind tour of fitting models in `R`
+
+For more detail, here are some great resources (there are many more):
+
+- [Farrell & Lewandowsky (2018) Computational Modeling of Cognition and Behavior](https://www.amazon.com/Computational-Modeling-Cognition-Behavior-Farrell/dp/1107525616/ref=pd_lpo_sbs_14_t_0?_encoding=UTF8&psc=1&refRID=NFD23G008H81Q439Q2QE)
+- [Lee & Wagenmakers (2014) Bayesian Cognitive Modeling: A Practical Course](https://www.amazon.com/Bayesian-Cognitive-Modeling-Practical-Course/dp/1107603579/ref=pd_bxgy_14_img_3?_encoding=UTF8&pd_rd_i=1107603579&pd_rd_r=Z05RWKB1HN2NMKPGVRHP&pd_rd_w=eKzQg&pd_rd_wg=XyvbI&psc=1&refRID=Z05RWKB1HN2NMKPGVRHP&dpID=51QoaqipF1L&preST=_SX218_BO1,204,203,200_QL40_&dpSrc=detail)
+- [Kruschke (2015) Doing Bayesian Data Analysis: A Tutorial with R, JAGS, and Stan](https://www.amazon.com/Doing-Bayesian-Data-Analysis-Tutorial/dp/0124058884/ref=pd_sim_14_1?_encoding=UTF8&pd_rd_i=0124058884&pd_rd_r=D124M2XTXH7G3SF300RD&pd_rd_w=vLV8u&pd_rd_wg=jNgS3&psc=1&refRID=D124M2XTXH7G3SF300RD&dpID=51LLy0AWDpL&preST=_SX218_BO1,204,203,200_QL40_&dpSrc=detail)
+- [Gelman et al. (2014) Bayesian Data Analysis](https://www.amazon.com/Bayesian-Analysis-Chapman-Statistical-Science/dp/1439840954/ref=pd_bxgy_14_img_2?_encoding=UTF8&pd_rd_i=1439840954&pd_rd_r=RBYBCWN0A0E90KM82XAD&pd_rd_w=xo7nR&pd_rd_wg=i2M4F&psc=1&refRID=RBYBCWN0A0E90KM82XAD&dpID=51gfDsQ7vxL&preST=_SY291_BO1,204,203,200_QL40_&dpSrc=detail)
+
 

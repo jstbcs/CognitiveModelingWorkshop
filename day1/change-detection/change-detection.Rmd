@@ -38,7 +38,7 @@ knitr::opts_chunk$set(echo = FALSE)
 - $d = \min(k/N, 1)$ = probability that the probed item is in memory
 - If the probed item is in memory the participant responds correctly. If it isn't, they must guess:
     - $p(\mbox{resp} = \mbox{change} \mid \mbox{change}) = p_h =  d + (1 - d)g$
-    - $p(\mbox{resp} = \mbox{no-change} \mid \mbox{change}) = p_f = (1 - d)g$
+    - $p(\mbox{resp} = \mbox{change} \mid \mbox{no-change}) = p_f = (1 - d)g$
 - This gives a formula for $k$:
     - $p_h = k/N + p_f \rightarrow k = N(p_h - p_f)$
 
@@ -59,7 +59,7 @@ p(\mbox{resp} = \mbox{change} \mid \mbox{change}) = p_h =  a(d + (1 - d)g) + (1 
 $$
 
 $$
-p(\mbox{resp} = \mbox{no-change} \mid \mbox{change}) = p_f = a(1 - d)g + (1 - a)g
+p(\mbox{resp} = \mbox{change} \mid \mbox{no-change}) = p_f = a(1 - d)g + (1 - a)g
 $$
 
 ## Result

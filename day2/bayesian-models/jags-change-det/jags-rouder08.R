@@ -14,6 +14,8 @@ head(cd)
 # for ischange = 1 all the respchange responses are hits (ntrials - respchange = misses)
 # for ischange = 0 all the respchange responses are false-alarms (ntrials - respchange = correct rejections)
 
+# fixed k model
+
 k_model = "
   model {
     for (i in 1:n){
@@ -76,11 +78,19 @@ k_jags <- jags.model(file = textConnection(k_model), data = cd_list, n.chains = 
 # warm up the chains
 update(k_jags, 1000)
 
-params = c("K_mu", "A_mu", "G_mu", "K_sigma", "A_sigma", "G_sigma")
+params = c("K_mu", "A_mu", "G_mu", "K_sigma", "A_sigma", "G_sigma") # we're only monitoring the population level parameters (but you could add the individual parameters: K_s, A_s, G_s)
 k_samples = coda.samples(model = k_jags, variable.names = params, n.iter = 1000)
 
 summary(k_samples)
 
+# check for convergence
+gelman.diag(k_samples)
+
+autocorr.diag(k_samples) # with many parameters it can be easier to look at a table of autocorrelations rather than plots
+
+
+
+# Variable k model
 # a version of the model with a different k parameter for each set size
 
 # to fit this we need to add some extra stuff to the data list
@@ -141,10 +151,10 @@ vary_k_jags <- jags.model(file = textConnection(vary_k_model), data = cd_list, n
 # warm up the chains
 update(vary_k_jags, 1000)
 
-params = c("K_mu", "A_mu", "G_mu", "K_sigma", "A_sigma", "G_sigma")
+params = c("K_mu", "A_mu", "G_mu", "K_sigma", "A_sigma", "G_sigma") # jags will monitor all K_mu (K_mu[1], K_mu[2], K_mu[3])
 vary_k_samples = coda.samples(model = vary_k_jags, variable.names = params, n.iter = 1000)
 
-summary(vary_k_samples)
+summary(vary_k_samples) # the quantities for K_mu[1] look weird...
 
 gelman.diag(vary_k_samples)
 
@@ -155,6 +165,7 @@ plot(vary_k_samples[,"K_mu[1]"])
 vary_k_samples = coda.samples(model = vary_k_jags, variable.names = params, n.iter = 10000)
 gelman.diag(vary_k_samples)
 
+plot(vary_k_samples[,"K_mu[1]"])
 # but this model probably should be reparameterized. If you're interested in how this could be done, please ask one of us
 
 ### Comparing these models with DIC ----
@@ -167,7 +178,7 @@ DIC_k_jags = dic.samples(model = k_jags, n.iter = 1000, type = "pD")
 DIC_vary_k_jags = dic.samples(model = vary_k_jags, n.iter = 1000, type = "pD")
 
 DIC_k_jags
-DIC_vary_k_jags
+DIC_vary_k_jags # we're looking at penalized deviance (DIC)
 
 diffdic(DIC_k_jags, DIC_vary_k_jags)
 

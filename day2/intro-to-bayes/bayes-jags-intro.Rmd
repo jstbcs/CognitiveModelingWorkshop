@@ -27,9 +27,9 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Purpose
 
-- To re-allocate credibility over parameters values based on the observed data (Kruschke, 2015)
-- Given the observed data, what parameter values should we most strongly believe in?
-- To obtain this we need to start with a model and some *prior* expectation as to the probability of certain parameter values in this model (more on this later)
+> - To re-allocate credibility over parameters values based on the observed data (Kruschke, 2015)
+> - Given the observed data, what parameter values should we most strongly believe in?
+> - To obtain this we need to start with a model and some *prior* expectation as to the probability of certain parameter values in this model (more on this later)
 
 ## Bayesian estimation
 
@@ -60,17 +60,17 @@ $$
 
 ## Why sample?
 
-- $p(\theta \mid y)$ is a *distribution* but the shape of that distribution is not always directly attainable.
-- For a normal prior on the mean and a normal likelihood function the posterior distribution for the mean is also a normal distribution. 
-- The normal is a *congugate prior* for the normal likelihood. (The Beta distribution is conjugate for the binomial distribution).
-- For complex models with multiple different priors on different parameters an analytic expression of the posterior distribution is not possible.
-- In these situations sampling is needed to approximate the posterior distribution. This is what is offered by software like JAGS, BUGS, Stan etc.
+> - $p(\theta \mid y)$ is a *distribution* but the shape of that distribution is not always directly attainable.
+> - For a normal prior on the mean and a normal likelihood function the posterior distribution for the mean is also a normal distribution. 
+> - The normal is a *conjugate prior* for the normal likelihood. (The Beta distribution is conjugate for the binomial distribution).
+> - For most models an analytic expression of the posterior distribution is not possible.
+> - In these situations sampling is needed to approximate the posterior distribution. This is what is offered by software like JAGS, BUGS, Stan etc.
 
 ## Intro to MCMC
 
 Markov Chain Monte Carlo
 
-- *Markov Chain* - a "memoryless" chain of events. Each step depends on the current state (e.g. parameter value) and not previous ones.
+- *Markov Chain* - a "memoryless" chain of events. Each step depends on the current state (e.g. parameter value) and not previous ones
 - *Monte Carlo* - Repeated random sampling
 
 Goal of MCMC - to approximate a target distribution
@@ -82,11 +82,11 @@ Goal of MCMC - to approximate a target distribution
 
 ## The Metropolis Algorithm
 
-1. Select a stating point in the parameter space. This is $\theta_{\text{current}}$
-2. A move in parameter space is suggested from a *proposal distribution*. This is $\theta_{\text{new}} = \theta_{\text{current}} + \Delta\theta$
-3. The probability that we accept the proposed move is: $p_{\text{accept}} = \min\left(\frac{f(\theta_{\text{new}})}{f(\theta_{\text{current}})}, 1\right)$
-4. Sample a uniform number between 0 and 1. If this number is smaller than $p_{\text{accept}}$ then we accept the proposal and $\theta_{\text{new}}$ becomes $\theta_{\text{current}}$ for the next step. If not we stick with the $\theta_{\text{current}}$ we had originally.
-5. Repeat steps 2-4 many times and record $\theta_{\text{current}}$ at the beginning of each loop.
+> 1. Select a stating point in the parameter space. This is $\theta_{\text{current}}$
+> 2. A move in parameter space is suggested from a *proposal distribution*. This is $\theta_{\text{new}} = \theta_{\text{current}} + \Delta\theta$
+> 3. The probability that we accept the proposed move is: $p_{\text{accept}} = \min\left(\frac{f(\theta_{\text{new}})}{f(\theta_{\text{current}})}, 1\right)$
+> 4. Sample a uniform number between 0 and 1. If this number is smaller than $p_{\text{accept}}$ then we accept the proposal and $\theta_{\text{new}}$ becomes $\theta_{\text{current}}$ for the next step. If not we stick with the $\theta_{\text{current}}$ we had originally.
+> 5. Repeat steps 2-4 many times and record $\theta_{\text{current}}$ at the beginning of each loop.
 
 Note for our Bayesian purposes $f(x) = p(x)p(y \mid x)$.
 
@@ -94,9 +94,9 @@ Note for our Bayesian purposes $f(x) = p(x)p(y \mid x)$.
 
 Why does it work?
 
-- If the proposed parameter value is "better"" then the current value (i.e. produces a higher posterior density) then it is *always* visited.
-- If it is not better than the current value it is visited in proportion to how it compares to the current value: $f(\theta_{\text{new}})/f(\theta_{\text{current}})$
-- Thus, values with a higher posterior density are visited more often. Running a long chain and assessing how often certain parameter values are represented gives us the posterior even if we don't know how to express its form analytically.
+> - If the proposed parameter value is "better" then the current value (i.e. produces a higher posterior density) then it is *always* visited.
+> - If it is not better than the current value it is visited in proportion to how it compares to the current value: $f(\theta_{\text{new}})/f(\theta_{\text{current}})$
+> - Thus, values with a higher posterior density are visited more often. Running a long chain and assessing how often certain parameter values are represented gives us the posterior even if we don't know how to express its form analytically.
 
 ## Metropolis Example
 
@@ -316,10 +316,10 @@ abline(v = 100, col="red", lty=2)
 
 ## Convergence
 
-- Run multiple sequences (*chains*) with different starting points
-- Compare variation between different chains to variation within chains. When these are approximately equal we can claim to have converged on the target distribution.
-- This is measured via $\hat{R}$ and conventionally a value $< 1.1$ is considered converged.
-- $\hat{R}$ is also referred to as the Gelman-Rubin convergence diagnostic or the Potential Scale Reduction Factor (PSRF).
+> - Run multiple sequences (*chains*) with different starting points
+> - Compare variation between different chains to variation within chains. When these are approximately equal we can claim to have converged on the target distribution.
+> - This is measured via $\hat{R}$ and conventionally a value $< 1.1$ is considered converged.
+> - $\hat{R}$ is also referred to as the Gelman-Rubin convergence diagnostic or the Potential Scale Reduction Factor (PSRF).
 
 ## Convergence
 
@@ -391,10 +391,10 @@ autocorr.plot(as.mcmc(samples8[seq(1, 10000, 100)]), auto.layout = F, main = "Ke
 
 More complicated than our Metropolis algorithm but better for large numbers of parameters, which easily occurs in hierarchical modeling. Imagine a two parameter situation $\{\theta_1, \theta_2\}$ with independent prior distributions $p(\theta_1, \theta_2) = p(\theta_1)p(\theta_2)$.
 
-1. Start at a random point in the (two dimensional) parameter space.
-2. Select one of the parameters (e.g. $\theta_1$). Sample a new value for it from $p(\theta_1 \mid \theta_2, y)$ using the current value of the other parameters (in this case, $\theta_2$).
-3. The sampled value comes directly from the posterior of $\theta_1$ conditional on the current value of $\theta_2$ so the move is *always* accepted.
-4. Go back to step 2 and repeat many times.
+> 1. Start at a random point in the (two dimensional) parameter space.
+> 2. Select one of the parameters (e.g. $\theta_1$). Sample a new value for it from $p(\theta_1 \mid \theta_2, y)$ using the current value of the other parameters (in this case, $\theta_2$).
+> 3. The sampled value comes directly from the posterior of $\theta_1$ conditional on the current value of $\theta_2$ so the move is *always* accepted.
+> 4. Go back to step 2 and repeat many times.
 
 To do this we need to know the conditional distributions for each parameter given each of the others $p(\theta_i \mid \theta_{i \neq j}, y)$. Luckily software (JAGS) can do this for us! 
 
@@ -668,7 +668,7 @@ model {
 - We're looking for systematic differences between the model and data, which may suggest areas for improvement
 
 ```{r, echo=T, eval=F}
-genNewObs <- function(m, s, sigma){
+hier_ppsamples <- function(m, s, sigma){
   # this function takes the hyperparameters from the above model
   # and generates new observations
   m_n = rnorm(length(m), m, s) # samples means from population distribution

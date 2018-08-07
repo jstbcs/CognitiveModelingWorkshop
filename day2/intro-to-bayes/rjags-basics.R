@@ -36,7 +36,10 @@ plot(samples)
 # look at convergence (Rhat) and autocorrelation
 gelman.diag(samples)
 
-autocorr.plot(samples) # produces a plot for each chain
+par(mfrow=c(2,2))
+autocorr.plot(samples, auto.layout = F) # produces a plot for each chain
+par(mfrow=c(1,1))
+
 
 # suppose that we do not know the SD and want to estimate it as well
 
@@ -62,7 +65,10 @@ samples2 = coda.samples(model = jags2, variable.names = c("mu", "sigma"), n.iter
 
 plot(samples2)
 gelman.diag(samples2)
-autocorr.plot(samples2)
+
+par(mfcol=c(2,4))
+autocorr.plot(samples2, auto.layout = F)
+par(mfcol=c(1,1))
 
 # plot the joint posterior samples
 plot(as.matrix(samples2), col = 'grey', type='l')

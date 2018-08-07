@@ -110,7 +110,7 @@ abline(0,1, lty=2, col="grey") # line of 1:1 correspondence
 
 ## Posterior predictive check
 
-genNewObs <- function(m, s, sigma){
+hier_ppsamples <- function(m, s, sigma){
   # this function takes the hyperparameters from the above model
   # and generates new observations
   m_n = rnorm(length(m), m, s) # samples means from population distribution
@@ -120,7 +120,7 @@ genNewObs <- function(m, s, sigma){
   return(y_rep)
 }
 
-pp_samples = genNewObs(samples_matrix[,'m'], samples_matrix[,'s'], samples_matrix[,'sigma'])
+pp_samples = hier_ppsamples(samples_matrix[,'m'], samples_matrix[,'s'], samples_matrix[,'sigma'])
 
 par(mfrow=c(1,2))
 hist(pp_samples, main="Posterior Predictive Samples", probability = T, xlab="y", breaks=30, col="lightblue")
