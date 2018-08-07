@@ -443,8 +443,8 @@ Plausible for memory research
   child {node [rectangle, draw] (h) {Detect Noise} % detect
     child {node [rectangle, draw] (i) [anchor=west] {correct rejection}}}
   child {node [rectangle, draw] (j) {Fail to Detect} % not detect
-    child {node [rectangle, draw] (k) [anchor=west] {correct rejection}}
-    child {node [rectangle, draw] (l) [anchor=west] {false alarm}}};
+    child {node [rectangle, draw] (k) [anchor=west] {false alarm}}
+    child {node [rectangle, draw] (l) [anchor=west] {correct rejection}}};
 % add lines and labels
 \draw[->,>=stealth] (a) -- node[midway,fill=white] {$d$} (b);
 \draw[->,>=stealth] (a) -- node[midway,fill=white] {$1 - d$} (d);
@@ -491,8 +491,8 @@ Y_{if} \sim \mbox{Binomial}(N_{in}, g_i).
   child {node [rectangle, draw] (h) {Detect Noise} % detect
     child {node [rectangle, draw] (i) [anchor=west] {correct rejection}}}
   child {node [rectangle, draw] (j) {Fail to Detect} % not detect
-    child {node [rectangle, draw] (k) [anchor=west] {correct rejection}}
-    child {node [rectangle, draw] (l) [anchor=west] {false alarm}}};
+    child {node [rectangle, draw] (k) [anchor=west] {false alarm}}
+    child {node [rectangle, draw] (l) [anchor=west] {correct rejection}}};
 % add lines and labels
 \draw[->,>=stealth] (a) -- node[midway,fill=white] {$d$} (b);
 \draw[->,>=stealth] (a) -- node[midway,fill=white] {$1 - d$} (d);
@@ -539,8 +539,8 @@ Y_{if} \sim \mbox{Binomial}(N_{in}, (1 - d_i)g_i).
   child {node [rectangle, draw] (h) {Detect Noise} % detect
     child {node [rectangle, draw] (i) [anchor=west] {correct rejection}}}
   child {node [rectangle, draw] (j) {Fail to Detect} % not detect
-    child {node [rectangle, draw] (k) [anchor=west] {correct rejection}}
-    child {node [rectangle, draw] (l) [anchor=west] {false alarm}}};
+    child {node [rectangle, draw] (k) [anchor=west] {false alarm}}
+    child {node [rectangle, draw] (l) [anchor=west] {correct rejection}}};
 % add lines and labels
 \draw[->,>=stealth] (a) -- node[midway,fill=white] {$d$} (b);
 \draw[->,>=stealth] (a) -- node[midway,fill=white] {$1 - d$} (d);

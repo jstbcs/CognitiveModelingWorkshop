@@ -104,7 +104,10 @@ for(s in 1:S){
 }
 
 colnames(AIC.ind) <- c("vac", "fix_k", "vary_k", "sdt", "winner")
-AIC.ind
+AIC.ind <- as.data.frame(AIC.ind)
+AIC.ind$winner <- factor(AIC.ind$winner
+                         , labels = c("fix_k", "vary_k", "sdt"))
+table(AIC.ind$winner)
 
 ##BIC
 BIC.ind <- fit_statistics
@@ -119,12 +122,27 @@ for(s in 1:S){
 }
 
 colnames(BIC.ind) <- c("vac", "fix_k", "vary_k", "sdt", "winner")
-BIC.ind
+BIC.ind <- as.data.frame(BIC.ind)
+BIC.ind$winner <- factor(BIC.ind$winner
+                         , labels = c("fix_k"))
+table(BIC.ind$winner)
 
 
 ##################### More Stuff #####################################
 
 #### Unequal Variance Signal Detection Model
+
+ll.sdt.uv <- function(par, y){
+  # length(par) == 7 (d1, d2, d3, c, s1, s2, s3)
+  ll=0
+  for(i in 1:length(N)){ # for each set size
+    p = sdt(d = par[i], c = par[length(N) + 1], s = par[length(N) + 1 + i])
+    ll = ll + negLL(y[N_i==i], p)
+  }
+  if(any(par[5:7] < rep(0,3))){
+    ll = ll + 10000} # penalty for going out of range
+  return(ll)
+}
 
 ## fit sdt model
 par = runif(n = 7, min = 0, max = 3)
