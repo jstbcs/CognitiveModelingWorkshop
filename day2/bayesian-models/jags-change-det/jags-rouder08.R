@@ -168,8 +168,20 @@ gelman.diag(vary_k_samples)
 plot(vary_k_samples[,"K_mu[1]"])
 # but this model probably should be reparameterized. If you're interested in how this could be done, please ask one of us
 
-### Comparing these models with DIC ----
 
+#### TASK -----
+
+# write a version of the fixed k model that estimates a different 
+# grand mean guessing parameter for each set size condition 
+# (i.e. G_mu[1], G_mu[2], G_mu[3])
+
+# this model should only estimate one grand mean K (K_mu)
+# so you can use the k_model as a guide (the vary_k_model will be helpful tooo)
+
+
+
+
+### Comparing the fixed and varying K models with DIC ----
 # DIC is like AIC and BIC but for hierarchical models https://en.wikipedia.org/wiki/Deviance_information_criterion
 # it essentially penalizes the model for the 'effective' number of parameters it has (how this is estimated is tricky. You can't just could the number of paramaters in a hierarchical model)
 
@@ -229,9 +241,7 @@ apply(pp_samples_N5, 2, FUN = quantile, prob=c(.025, .975))
 apply(pp_samples_N8, 2, FUN = quantile, prob=c(.025, .975))
 
 ### HARD task ----
-
-## try ploting the data and the posterior predictive samples
-
+## try ploting the data and the posterior predictive samples (this could be a histogram of observed vs predicted hit/false-alarm rates for each set size - there are other plots you could consider, though)
 # observed hit and false alarm rates can be found by 
 cd$rate = with(cd, respchange/ntrials)
 
