@@ -28,7 +28,7 @@ nll.condition <- function(par, y){ #assign par=c(d, g), y = c(h, m, f, c)
   g <- par[2]
   p[1] <- d + (1 - d) * g
   p[2] <- 1 - p[1]
-  p[3] <- g
+  p[3] <- (1 - d) * g
   p[4] <- 1 - p[3]
   return(-sum(y * log(p)))
 }
@@ -62,7 +62,7 @@ dat <- c(22, 28, 22, 28   #h, m, f, c for condition 1
 
 #General Model
 par.m <- c(.5, .5, .5, .5) #starting values
-mod.g  <- optim(par.m, nll.g,y8 = dat, hessian = T)
+mod.g  <- optim(par.m, nll.g, y8 = dat, hessian = T)
 
 #Model 1
 par.m <- c(.5, .5, .5) #starting values
