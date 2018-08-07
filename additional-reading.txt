@@ -1,0 +1,17 @@
+
+# Suggested readings (in addition to references in the slides)
+
+Efron and Morris (1977) - on shrinkage
+http://statweb.stanford.edu/~ckirby/brad/other/Article1977.pdf
+
+
+Rouder & Morey (2018) - teaching Bayes' theorem
+https://osf.io/qnguh/
+
+
+An interesting set of blog posts on Bayesian estimation of SDT models in R using Stan via the package brms
+https://vuorre.netlify.com/post/2017/bayesian-estimation-of-signal-detection-theory-models-part-1/
+
+
+Aho et al. (2014) - on AIC and BIC
+https://sciences.ucf.edu/biology/d4lab/wp-content/uploads/sites/125/2017/01/Aho-etal-2014.pdf

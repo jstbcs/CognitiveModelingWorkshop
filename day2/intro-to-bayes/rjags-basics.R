@@ -4,6 +4,8 @@ library(coda)
 
 set.seed(123)
 N = 100
+mu_real = 110
+
 Y = rnorm(N, mu_real, 15) # data
 
 data_list = list('y' = Y,
@@ -29,6 +31,10 @@ jags <- jags.model(file = textConnection(model), data = data_list, n.chains = 4,
 update(jags, 1000) # warm up
 
 samples = coda.samples(model = jags, variable.names = "mu", n.iter = 1000)
+
+summary(samples)
+
+effectiveSize(samples)
 
 # look at the chains and the distribution of mu
 plot(samples)

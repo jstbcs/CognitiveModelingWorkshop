@@ -52,7 +52,7 @@ head(hier_data)
 data_list = list(
   'y' = hier_data$y,
   'id' = hier_data$ppt, # participant id for each observation
-  'I' = length(unique(hier_data$ppt)), # number of participantd
+  'I' = length(unique(hier_data$ppt)), # number of participants
   'N' = nrow(hier_data) # number of observations
 )
 
@@ -63,6 +63,8 @@ jags <- jags.model(file = textConnection(model), data = data_list, n.chains = 4,
 update(jags, 1000)
 
 samples = coda.samples(model = jags, variable.names = c("mu", "sigma", "m", "s"), n.iter = 1000)
+
+summary(samples)
 
 plot(samples[,"m"])
 plot(samples[,"s"])

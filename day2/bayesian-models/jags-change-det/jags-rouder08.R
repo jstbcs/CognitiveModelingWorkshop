@@ -14,6 +14,16 @@ head(cd)
 # for ischange = 1 all the respchange responses are hits (ntrials - respchange = misses)
 # for ischange = 0 all the respchange responses are false-alarms (ntrials - respchange = correct rejections)
 
+cd_list = list(
+  "y" = cd$respchange,
+  "ischange" = cd$ischange,
+  "ntrials" = cd$ntrials,
+  "N" = cd$N,
+  "n" = nrow(cd),
+  "S" = length(unique(cd$ppt)),
+  "id" = cd$ppt
+)
+
 # fixed k model
 
 k_model = "
@@ -61,16 +71,6 @@ k_model = "
   }
 "
 
-cd_list = list(
-  "y" = cd$respchange,
-  "ischange" = cd$ischange,
-  "ntrials" = cd$ntrials,
-  "N" = cd$N,
-  "n" = nrow(cd),
-  "S" = length(unique(cd$ppt)),
-  "id" = cd$ppt
-)
-
 
 # initialize the jags model
 k_jags <- jags.model(file = textConnection(k_model), data = cd_list, n.chains = 4, n.adapt = 1000)
@@ -79,7 +79,7 @@ k_jags <- jags.model(file = textConnection(k_model), data = cd_list, n.chains = 
 update(k_jags, 1000)
 
 params = c("K_mu", "A_mu", "G_mu", "K_sigma", "A_sigma", "G_sigma") # we're only monitoring the population level parameters (but you could add the individual parameters: K_s, A_s, G_s)
-k_samples = coda.samples(model = k_jags, variable.names = params, n.iter = 1000)
+k_samples = coda.samples(model = k_jags, variable.names = params, n.iter = 2000)
 
 summary(k_samples)
 
@@ -88,7 +88,7 @@ gelman.diag(k_samples)
 
 autocorr.diag(k_samples) # with many parameters it can be easier to look at a table of autocorrelations rather than plots
 
-
+effectiveSize(k_samples)
 
 # Variable k model
 # a version of the model with a different k parameter for each set size
@@ -133,6 +133,7 @@ vary_k_model = "
     for (ss in 1:N_n){
       K_mu[ss] ~ dnorm(3, 1/4^2)
     }
+
     A_mu ~ dnorm(2.2, 1/4^2) 
     G_mu ~ dnorm(0, 1/4^2)
     
@@ -178,7 +179,73 @@ plot(vary_k_samples[,"K_mu[1]"])
 # this model should only estimate one grand mean K (K_mu)
 # so you can use the k_model as a guide (the vary_k_model will be helpful tooo)
 
+vary_g_model = "
+  model {
+    for (i in 1:n){
+      y[i] ~ dbin(y.hat[i], ntrials[i])
+      y.hat[i] <- max(0, min(1, P[i]))
+      
+      # p(resp = change)
+      P[i] <- ifelse(ischange[i] == 1, 
+                     a[i]*(d[i]+(1-d[i])*g[i]) + (1-a[i])*g[i], # p(hit)
+                     a[i]*(1-d[i])*g[i] + (1-a[i])*g[i]) # p(false-alarm)
+      
+      d[i] <- min(k[i]/N[i], 1)
+      
+      # model transformations of k, u, and a
+      k[i] <- max(kappa[i], 0) # 'Mass-at-chance' transformation
+      
+      # in this model individual capacities are stored in a matrix
+      # row = individual, column = set size
+      kappa[i] <- K_s[id[i]]
+      logit(a[i]) <- A_s[id[i]] # logit transformation
+      logit(g[i]) <- G_s[id[i], N_i[i]]
+    }
+    
+    for (s in 1:S){
+      for (ss in 1:N_n){
+        G_s[s, ss] ~ dnorm(G_mu[ss], 1/G_sigma^2)
+      }
+      A_s[s] ~ dnorm(A_mu, 1/A_sigma^2)
+      K_s[s] ~ dnorm(K_mu, 1/K_sigma^2)
+    }
+    
+    for (ss in 1:N_n){
+      G_mu[ss] ~ dnorm(0, 1/4^2)
+    }
+    
+    A_mu ~ dnorm(2.2, 1/4^2) 
+    K_mu ~ dnorm(0, 1/4^2)
+    
+    K_sigma ~ dgamma(shape, rate)
+    A_sigma ~ dgamma(shape, rate)
+    G_sigma ~ dgamma(shape, rate)
+    
+    shape <- 1.01005 # mode = .1, SD = 10 (v. vauge)
+    rate <- 0.1005012
+  }
+"
 
+# initialize the jags model
+vary_g_jags <- jags.model(file = textConnection(vary_g_model), data = cd_list, n.chains = 4, n.adapt = 1000)
+
+# warm up the chains
+update(vary_g_jags, 1000)
+
+params = c("K_mu", "A_mu", "G_mu", "K_sigma", "A_sigma", "G_sigma")
+vary_g_samples = coda.samples(model = vary_g_jags, variable.names = params, n.iter = 1000)
+
+summary(vary_g_samples)
+
+gelman.diag(vary_g_samples)
+
+par(mfrow=c(3,2))
+plot(vary_g_samples[,"G_mu[1]"], auto.layout = F)
+plot(vary_g_samples[,"G_mu[2]"], auto.layout = F)
+plot(vary_g_samples[,"G_mu[3]"], auto.layout = F)
+par(mfrow=c(1,1))
+
+DIC_vary_g_jags = dic.samples(model = vary_g_jags, n.iter = 1000, type = "pD")
 
 
 ### Comparing the fixed and varying K models with DIC ----
@@ -196,11 +263,21 @@ diffdic(DIC_k_jags, DIC_vary_k_jags)
 
 # DIC is smaller for the fixed k version
 
-### Posterior predictive samples ----
+# compare the vary g and one g models
+diffdic(DIC_k_jags, DIC_vary_g_jags)
 
-# we need to extract the samples to a matrix and then create a function to 
-# turn the parameters into new data
+### Looking at parameters on their natural scale
+
+# to extract the samples to a matrix
 k_samples_mat = as.matrix(k_samples)
+
+hist(k_samples_mat[,"K_mu"])
+hist(plogis(k_samples_mat[,"A_mu"]))
+hist(plogis(k_samples_mat[,"G_mu"]))
+
+### Posterior predictive samples ----
+# we need a function to 
+# turn the parameters into new data
 
 k_ppsamples = function(mat, N, trials = 30){
   # takes the posterior samples and produces posterior predictive samples for 
